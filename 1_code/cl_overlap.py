@@ -9,15 +9,29 @@ import matplotlib.pyplot as plt
 
 def main(vorplot=False):
     """
-    Helper script. Check the overlap between clusters catalogued in CG2020
+    Helper script. Plot the Voronoi volumes of the clusters catalogued in
+    CG2020, and find the smallest radius that delimits the region with no
+    other clusters inside.
     """
 
     # Read file data will all the clusters
     data_all_cls = pd.read_csv("../0_data/cantat_gaudin_et_al_2020/cg2020.csv")
-    # names = np.array(list(data_all_cls['Name']))
-
     x, y = data_all_cls['GLON'], data_all_cls['GLAT']
     coords = np.array([x, y]).T
+
+    # Find the distances to all clusters, for all clusters
+    dist = cdist(coords, coords)
+    msk = dist == 0.
+    dist[msk] = np.inf
+    dist_idx = np.argmin(dist, 0)
+
+    cl_dists = []
+    for i, j in enumerate(dist_idx):
+        cl_dists.append(dist[i][j])
+    idx = np.argsort(cl_dists)
+    for i in idx:
+        dd = cl_dists[i]
+        print(data_all_cls['Name'][i], round(dd * 60., 2))
 
     if vorplot:
         # Print and plot voronoi cells
@@ -29,30 +43,6 @@ def main(vorplot=False):
             print(cl, x[i], y[i], area_arcmin)
         names = data_all_cls['Name']
         makePlot(x, y, names, vor)
-
-    # Find the distances to all clusters, for all clusters
-    dist = cdist(coords, coords)
-
-    for i, xy_c in enumerate(coords):
-        breakpoint()
-        dd = dist[i]
-        msk = (xy_c[0])
-
-    # match_found = []
-    # for i, d in enumerate(dist):
-    #     msk1 = (d < 1) & (d > 0.)
-    #     if msk1.sum() > 1:
-    #         names_i = names[msk1]
-    #         name_all = ''
-    #         for name in names_i:
-    #             if name != names[i]:
-    #                 name_comb = names[i] + name
-    #                 if name_comb not in match_found:
-    #                     match_found.append(name_comb)
-    #                     name_all += ' ' + name
-    #         if name_all != '':
-    #             print(names[i] + name_all)
-    #     # breakpoint()
 
 
 def makePlot(x, y, names, vor):

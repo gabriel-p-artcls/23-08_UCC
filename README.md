@@ -348,3 +348,129 @@ It took ~45 min per cluster.
 **Notes on some clusters**
 
 - RSG_7: shares a field 
+
+
+
+
+### New fast method for membership estimation
+
+Norm   : Normalized spaces in VPD and Plx
+weight : weighting the distances by the uncertainties in PMs and parallax
+GUMM   : Gaussian+Uniform mixture model used to filter likely non-members
+std    : `C_thresh=np.median(C_S_field) + std * np.std(C_S_field)`
+
+
+Runs 1 through 8 all have their VPD+Plx dimensions normalized.
+Results:
+- no GUMM means a larger dispersion in coordinates (as expected)
+- weighting by errors increases the percentage lost, mostly in the +16 range
+- std=2 makes very little difference
+
+
+Runs 9 through 16 don't normalize the VPD+Plx dimensions.
+Results:
+- no GUMM means a larger dispersion in coordinates (as expected)
+- larger dispersion in Plx compared to runs 1-8
+- more CG members are on average recovered compared to runs 1-8, mainly in
+  the +16 range
+- Runs 15 and 13 show miss 100% of CG2020 members for some clusters
+
+
+
+Runs 17 through 24 are processed with a smaller `prob_cut` for the GUMM.
+Results:
+- No visible improvement
+
+Runs 25 through 32 are processed using the averaged GUMM probabilities (ie: no 
+probability cut)
+Results:
+- Bad results, increases the missed percentage in both ranges (-16 and +16)
+
+Runs 33 through 40 don't apply any kind of GUMM, instead the classification
+probability is obtained and finally averaged. --> NOT DONE
+
+Runs 41 through 43 apply the second new method where coordinates distances are
+also used to assign membership likelihoods. Runs 41 and 42 gave poor results
+so I removed them. Run 43 is useful but I have no way to actually select the
+most probable cluster members.
+
+Runs 44 to 49 apply different outlier removal methods: isol=IsolationForest,
+LOF=LocalOutlierFactor, NSTD=sigma clipping. The sigma clipping is the fastest
+and the one that gives best results.
+
+Runs 50 to 57 refine on run 49 which was the best of the previous batch.
+Results:
+- Runs with std=2 miss a lot of CG2020 members, run 51 is the best
+
+Runs 58 to 65 are equivalent to 50-57 but they use the VPD+Plx space to reject
+outliers instead of the xy space.
+Results:
+- Runs with std=2 miss a lot of CG2020 members,
+
+
+```
+| M  | N_loop | N_std |
+|----|--------|-------|
+| 51 |    2   |   3   | <-- Best
+| 53 |    3   |   3   | <-- Equivalent to 49
+| 55 |    4   |   3   |
+| 57 |    5   |   3   |
+
+| 59 |    2   |   3   |
+| 61 |    3   |   3   |
+| 63 |    4   |   3   |
+| 65 |    5   |   3   |
+
+
+| M  | Norm | weight | GUMM | std |
+| 44 |   y  |    n   | isol |  1  |
+| 45 |   y  |    n   | 3STD |  1  |
+| 46 |   y  |    n   | LOF  |  1  |
+| 47 |   n  |    n   | 3STD |  2  |
+| 48 |   n  |    n   | 3STD |  3  |
+| 49 |   n  |    n   | 3STD |  0  |
+
+Discarded:
+| 1  |   y  |    y   |   y  |  1  |
+| 2  |   y  |    y   |   y  |  2  |
+| 3  |   y  |    y   |   n  |  1  |
+| 4  |   y  |    y   |   n  |  2  |
+| 5  |   y  |    n   |   y  |  1  |
+| 7  |   y  |    n   |   n  |  1  |
+| 13 |   n  |    n   |   y  |  1  |
+| 15 |   n  |    n   |   n  |  1  |
+| 9  |   n  |    y   |   y  |  1  |
+| 10 |   n  |    y   |   y  |  2  |
+| 11 |   n  |    y   |   n  |  1  |
+| 12 |   n  |    y   |   n  |  2  |
+| 6  |   y  |    n   |   y  |  2  |
+| 8  |   y  |    n   |   n  |  2  |
+| 14 |   n  |    n   |   y  |  2  |
+| 16 |   n  |    n   |   n  |  2  |
+| 17 |   y  |    y   |   y  |  1  |
+| 18 |   y  |    y   |   y  |  2  |
+| 21 |   n  |    y   |   y  |  1  |
+| 22 |   n  |    y   |   y  |  2  |
+| 19 |   y  |    n   |   y  |  1  |
+| 20 |   y  |    n   |   y  |  2  |
+| 23 |   n  |    n   |   y  |  1  |
+| 24 |   n  |    n   |   y  |  2  |
+| 25 |   y  |    y   |   a  |  1  |
+| 26 |   y  |    y   |   a  |  2  |
+| 27 |   y  |    n   |   a  |  1  |
+| 28 |   y  |    n   |   a  |  2  |
+| 29 |   n  |    y   |   a  |  1  |
+| 30 |   n  |    y   |   a  |  2  |
+| 31 |   n  |    n   |   a  |  1  |
+| 32 |   n  |    n   |   a  |  2  |
+
+| M  | N_loop | N_std |
+| 50 |    2   |   2   |
+| 52 |    3   |   2   |
+| 54 |    4   |   2   |
+| 56 |    5   |   2   |
+| 58 |    2   |   2   |
+| 60 |    3   |   2   |
+| 62 |    4   |   2   |
+| 64 |    5   |   2   |
+```

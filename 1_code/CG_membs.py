@@ -22,7 +22,7 @@ def main():
     #
     data_large = pd.read_csv("../0_data/CG_d_1kpc_r_30.csv")
 
-    msk = data_Pmemb['Cluster'] == 'Haffner_13'
+    msk = data_Pmemb['Cluster'] == 'IC_2602'
     data = data_Pmemb[msk]
     plt.subplot(221)
     plt.title("N={}".format(msk.sum()))
