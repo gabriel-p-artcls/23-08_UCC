@@ -17,12 +17,14 @@ def main():
     # Read file data will all the members
     data_Pmemb = pd.read_csv(
         "../0_data/cantat_gaudin_et_al_2020/CG_2020_members.csv")
-    #
     data_all_cls = pd.read_csv("../0_data/cantat_gaudin_et_al_2020/cg2020.csv")
-    #
-    data_large = pd.read_csv("../0_data/CG_d_1kpc_r_30.csv")
 
-    msk = data_Pmemb['Cluster'] == 'IC_2602'
+    cl = "NGC_6791"
+
+    msk = data_all_cls['Name'] == cl
+    pd.set_option('display.max_columns', None)
+    print(data_all_cls[msk])
+    msk = data_Pmemb['Cluster'] == cl
     data = data_Pmemb[msk]
     plt.subplot(221)
     plt.title("N={}".format(msk.sum()))
@@ -43,10 +45,10 @@ def main():
     unq_clusts = np.array(list(set(data_Pmemb['Cluster'])))
     print(len(unq_clusts))
 
-    clust_dont_proc, data_large = clustIsolate(
-        data_Pmemb, data_all_cls, data_large, unq_clusts)
+    # clust_dont_proc, data_large = clustIsolate(
+    #     data_Pmemb, data_all_cls, data_large, unq_clusts)
 
-    iniFileGen(data_large, clust_dont_proc)
+    # iniFileGen(data_large, clust_dont_proc)
 
 
 def clustIsolate(data_Pmemb, data_all_cls, data_large, unq_clusts):

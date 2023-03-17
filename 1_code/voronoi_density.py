@@ -7,15 +7,19 @@ from scipy.spatial.distance import cdist
 import matplotlib.pyplot as plt
 
 
-def main(vorplot=False):
+def main(vorplot=True):
     """
-    Helper script. Plot the Voronoi volumes of the clusters catalogued in
-    CG2020, and find the smallest radius that delimits the region with no
-    other clusters inside.
+    Helper script. Plot the Voronoi volumes of the clusters and find the
+    smallest radius that delimits the region with no other clusters inside.
     """
-
     # Read file data will all the clusters
-    data_all_cls = pd.read_csv("../0_data/cantat_gaudin_et_al_2020/cg2020.csv")
+    # data_all_cls = pd.read_csv("../2_pipeline/final_catalog.csv")
+
+    df_new = pd.read_csv("../1_code/NEW_DBs.csv")
+    df_old = pd.read_csv("../1_code/OLD_DBs.csv")
+    data_all_cls = pd.concat([df_old, df_new])
+    data_all_cls = data_all_cls.reset_index()
+
     x, y = data_all_cls['GLON'], data_all_cls['GLAT']
     coords = np.array([x, y]).T
 
@@ -25,23 +29,33 @@ def main(vorplot=False):
     dist[msk] = np.inf
     dist_idx = np.argmin(dist, 0)
 
-    cl_dists = []
+    cl_dists, clusts = [], []
     for i, j in enumerate(dist_idx):
         cl_dists.append(dist[i][j])
+        clusts.append(
+            [data_all_cls['ID'][i], data_all_cls['ID'][j], round(dist[i][j] * 60, 3)])
     idx = np.argsort(cl_dists)
+    clusts = np.array(clusts)
+
+    for cl in clusts[idx]:
+        print(cl)
+    breakpoint()
+
     for i in idx:
         dd = cl_dists[i]
-        print(data_all_cls['Name'][i], round(dd * 60., 2))
+        print(data_all_cls['ID'][i], round(dd * 60., 3))
+
+    # Print and plot voronoi cells
+    vor, vols = voronoi_volumes(coords)
+    idxs = np.argsort(vols)
+    for i in idxs:
+        cl = data_all_cls['ID'][i]
+        area_arcmin = np.sqrt(vols[i] * 3600)
+        # print(cl, x[i], y[i], round(area_arcmin, 1))
+        print(cl, round(area_arcmin, 1))
 
     if vorplot:
-        # Print and plot voronoi cells
-        vor, vols = voronoi_volumes(coords)
-        idxs = np.argsort(vols)
-        for i in idxs:
-            cl = data_all_cls['Name'][i]
-            area_arcmin = np.sqrt(vols[i] * 3600)
-            print(cl, x[i], y[i], area_arcmin)
-        names = data_all_cls['Name']
+        names = data_all_cls['ID']
         makePlot(x, y, names, vor)
 
 
