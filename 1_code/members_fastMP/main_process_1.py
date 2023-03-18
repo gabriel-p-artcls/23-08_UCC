@@ -4,7 +4,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy import spatial
-# import time as t
+from astropy.coordinates import SkyCoord
+import astropy.units as u
 import sys
 import main_process_GDR3_query as G3Q
 # insert at 1, 0 is the script path (or '' in REPL)
@@ -41,6 +42,11 @@ def main(N_cl_extra=5):
     # Output folder
     out_path = f"out_{run_ID}/"
 
+    # Generate final table
+    with open(out_path + f"table_{run_ID}.csv", "w") as f:
+        f.write(
+            "ID,GLON,GLAT,RA_ICRS,DE_ICRS,plx,pmRA,pmDE,N_membs,Class,FC\n")
+
     # Read data
     clusters_list, frames_data, database_full = read_input(
         gaiadr3_path_partial, frames_ranges)
@@ -52,16 +58,11 @@ def main(N_cl_extra=5):
     tree = spatial.cKDTree(xys)
     close_cl_idx = tree.query(xys, k=N_cl_extra + 1)
 
-    # aa = os.listdir("/media/gabriel/rest/Dropbox_nosync/Papers/2023/GDR3_members/1_code/members_fastMP/out_1/")
-    # aa = [_[:-4] for _ in aa]
-    # clusters_list = clusters_list.sample(frac=0.1)
-
     for index, cl in clusters_list.iterrows():
-        # t0 = t.time()
         name = cl['ID']
 
         # if name in aa:
-        # if name not in ('HE1564',):
+        # if name not in ('Patchick_94',):
         # # if 'LISC36' not in name:
             # continue
         print(index, name)
@@ -71,11 +72,10 @@ def main(N_cl_extra=5):
             database_full, database_full_names, close_cl_idx, name)
 
         # Generate frame
-        # t1 = t.time()
         data = get_frame(frames_path, frames_data, cl)
         data.to_csv(out_path + name + "_full.csv", index=False)
+        # # Store full file?
         # data = pd.read_csv(out_path + name + "_full.csv")
-        # t1f = t.time() - t1
 
         # Extract center coordinates
         xy_c, vpd_c, plx_c, fixed_centers = (cl['GLON'], cl['GLAT']), None,\
@@ -113,9 +113,8 @@ def main(N_cl_extra=5):
               name, N_membs, (probs_all > 0.5).sum(), classif))
 
         # Write output
-        write_out(out_path, name, data, probs_all, N_membs)
-
-        # print("Times: {:.1f}+{:.1f} = {:.1f}".format(t1f, t2f, t.time() - t0))
+        write_out(run_ID, out_path, name, data, probs_all, N_membs, classif,
+                  fixed_centers)
 
         # Remove full file
         os.remove(out_path + name + "_full.csv")
@@ -215,24 +214,38 @@ def get_close_cls(GDR3_f, GDR3_f_names, close_cl_idx, name):
     return centers_ex
 
 
-def get_classif(lon, lat, pmRA, pmDE, plx, probs_final):
+def get_classif(lon, lat, pmRA, pmDE, plx, probs_final, rad_max=2):
     """
     """
-    # Select most probable members
+    # Filter stars beyond 2 times the 95th percentile distance from the center
     msk_membs = probs_final > 0.5
-
     xy_c = np.median([lon[msk_membs], lat[msk_membs]], 1)
-    vpd_c = np.median([pmRA[msk_membs], pmDE[msk_membs]], 1)
-    plx_c = np.median(plx[msk_membs])
-
-    # Median distances to centers for members
     xy = np.array([lon[msk_membs], lat[msk_membs]]).T
     xy_rads = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
+    xy_rad = np.percentile(xy_rads, 95)
+    xy = np.array([lon, lat]).T
+    xy_rads = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
+    msk_xy = xy_rads < rad_max * xy_rad
+    lon, lat, pmRA, pmDE, plx, probs_final = lon[msk_xy], lat[msk_xy],\
+        pmRA[msk_xy], pmDE[msk_xy], plx[msk_xy], probs_final[msk_xy]
+
+    # Select most probable members
+    msk_membs = probs_final > 0.5
+    lon_m, lat_m, pmRA_m, pmDE_m, plx_m = lon[msk_membs], lat[msk_membs],\
+        pmRA[msk_membs], pmDE[msk_membs], plx[msk_membs]
+
+    xy_c = np.median([lon_m, lat_m], 1)
+    vpd_c = np.median([pmRA_m, pmDE_m], 1)
+    plx_c = np.median(plx_m)
+
+    # Median distances to centers for members
+    xy = np.array([lon_m, lat_m]).T
+    xy_rads = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
     xy_05 = np.median(xy_rads)
-    pm = np.array([pmRA[msk_membs], pmDE[msk_membs]]).T
+    pm = np.array([pmRA_m, pmDE_m]).T
     pm_rads = spatial.distance.cdist(pm, np.array([vpd_c])).T[0]
     pm_05 = np.median(pm_rads)
-    plx_rad = abs(plx[msk_membs] - plx_c)
+    plx_rad = abs(plx_m - plx_c)
     plx_05 = np.median(plx_rad)
     # Count member stars within median distances
     N_memb_xy = (xy_rads < xy_05).sum()
@@ -327,7 +340,8 @@ def check_centers(X, xy_c, vpd_c, plx_c, probs_all):
     return break_flag
 
 
-def write_out(out_path, cl_name, data, probs_all, N_membs, prob_min=0.5):
+def write_out(run_ID, out_path, name, data, probs_all, N_membs, classif,
+              fixed_centers, prob_min=0.5):
     """
     """
     data['probs'] = np.round(probs_all, 2)
@@ -340,7 +354,30 @@ def write_out(out_path, cl_name, data, probs_all, N_membs, prob_min=0.5):
 
     df = data[msk]
 
-    df.to_csv(out_path + cl_name + ".csv", index=False)
+    # Write member stars for cluster
+    df.to_csv(out_path + name + ".csv", index=False)
+
+    lon, lat = np.median(df['GLON']), np.median(df['GLAT'])
+    ra, dec = lonlat2radec(lon, lat)
+    lon, lat = round(lon, 4), round(lat, 4)
+    ra, dec = round(ra, 4), round(dec, 4)
+    plx = round(np.median(df['Plx']), 3)
+    pmRA, pmDE = np.median(df['pmRA']), np.median(df['pmDE'])
+    pmRA, pmDE = round(pmRA, 2), round(pmDE, 2)
+
+    df_row = pd.DataFrame(data={
+        "ID": [name], "GLON": [lon], "GLAT": [lat], "RA_ICRS": [ra],
+        "DE_ICRS": [dec], "plx": [plx], "pmRA": [pmRA], "pmDE": [pmDE],
+        "N_membs": [len(df)], 'Class': classif, 'FC': fixed_centers})
+    df_row.to_csv(out_path + f"table_{run_ID}.csv", mode='a', header=False,
+                  index=False)
+
+
+def lonlat2radec(lon, lat):
+    gc = SkyCoord(l=lon * u.degree, b=lat * u.degree, frame='galactic')
+    rd = gc.transform_to('fk5')
+    ra, dec = rd.ra.value, rd.dec.value
+    return np.round(ra, 5), np.round(dec, 5)
 
 
 if __name__ == '__main__':
