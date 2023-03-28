@@ -33,7 +33,8 @@ dbs_names = {
     # None, None, None, None]
 }
 
-# DIAS21, CG20, MWSC, TARRICQ22, BICA19, HAO21
+# THESE POSITIONS ARE IMPORTANT!
+# DIAS21, CG20, MWSC, TARRICQ22, HAO21, BICA19
 DBs_IDS = np.array([1, 2, 3, 4, 5, 6])
 
 
@@ -206,7 +207,8 @@ def store_no_match(
             full_name = DB_data[DB_id2][cols2[0]][i].split('|')[0]
         else:
             full_name = DB_data[DB_id2][cols2[0]][i]
-        # print("CL in DB2 no match in DB1", i, full_name)
+        # if DB_id2 == 'HAO21':
+        #     print("CL in DB2 no match in DB1", i, full_name)
         # Save cluster data
         cl_dict[full_name] = [
             [np.nan for _ in range(N_nans)] for _ in range(N_vals)]
@@ -279,11 +281,11 @@ def combine_DBs(cl_dict):
     """
     print("\nWriting to file...")
 
-    db_l, names_l, ra_l, dec_l, glon_l, glat_l, plx_l, pmRA_l, pmDE_l, dmod_l,\
-        extin_l, logAge_l, FeH_l = [[] for _ in range(N_vals + 1 + 3)]
+    db_l, names_l, ra_l, dec_l, glon_l, glat_l, plx_l, pmRA_l, pmDE_l =\
+        [[] for _ in range(N_vals + 1 + 3)]
     for cl, vals in cl_dict.items():
         names_l.append(cl)
-        ra, dec, plx, pmRA, pmDE, Dist, extin, logAge, FeH = vals
+        ra, dec, plx, pmRA, pmDE = vals
 
         msk = ~np.isnan(ra)
         db_l.append("".join(str(_) for _ in DBs_IDS[msk]))
@@ -297,8 +299,8 @@ def combine_DBs(cl_dict):
             ra_m = ra[0]
         else:
             # Don't use DIAS21's RA
-            ra_m = np.nanmedian([ra[1], ra[2], ra_b])
-        dec_m = np.nanmedian([dec[0], dec[1], dec[2], dec_b])
+            ra_m = np.nanmedian([ra[1], ra[2], ra[3], ra[4], ra_b])
+        dec_m = np.nanmedian([dec[0], dec[1], dec[2], dec[3], dec[4], dec_b])
         ra_l.append(round(ra_m, 5))
         dec_l.append(round(dec_m, 5))
 
@@ -311,13 +313,12 @@ def combine_DBs(cl_dict):
         elif not np.isnan(plx[1]):
             # Prefer CG20 values whenever possible
             plx_m = plx[1]
+        elif not np.isnan([plx[0], plx[2], plx[3], plx[5]]).all():
+            # Avoid HAO21 data if possible
+            plx_m = np.nanmedian([plx[0], plx[2], plx[3], plx[5]])
         else:
-            # # Avoid HAO21 Plx data if possible
-            # if np.isnan(plx[1:]).all():
-            #     plx_m = plx[0]
-            # else:
-            #     plx_m = np.nanmedian(plx[1:])
-            plx_m = np.nanmedian(plx)
+            # Use HAO21 data
+            plx_m = plx[4]
         plx_l.append(round(plx_m, 3))
 
         if np.isnan(pmRA).all():
@@ -325,13 +326,12 @@ def combine_DBs(cl_dict):
         elif not np.isnan(pmRA[1]):
             # Prefer CG20 values whenever possible
             pmRA_m = pmRA[1]
+        elif not np.isnan([pmRA[0], pmRA[2], pmRA[3], pmRA[5]]).all():
+            # Avoid HAO21 data if possible
+            pmRA_m = np.nanmedian([pmRA[0], pmRA[2], pmRA[3], pmRA[5]])
         else:
-            # # Avoid HAO21 pmRA data if possible
-            # if np.isnan(pmRA[1:]).all():
-            #     pmRA_m = pmRA[0]
-            # else:
-            #     pmRA_m = np.nanmedian(pmRA[1:])
-            pmRA_m = np.nanmedian(pmRA)
+            # Use HAO21 data
+            pmRA_m = pmRA[4]
         pmRA_l.append(round(pmRA_m, 3))
 
         if np.isnan(pmDE).all():
@@ -339,62 +339,19 @@ def combine_DBs(cl_dict):
         elif not np.isnan(pmDE[1]):
             # Prefer CG20 values whenever possible
             pmDE_m = pmDE[1]
+        elif not np.isnan([pmDE[0], pmDE[2], pmDE[3], pmDE[5]]).all():
+            # Avoid HAO21 data if possible
+            pmDE_m = np.nanmedian([pmDE[0], pmDE[2], pmDE[3], pmDE[5]])
         else:
-            # # Avoid HAO21 pmDE data if possible
-            # if np.isnan(pmDE[1:]).all():
-            #     pmDE_m = pmDE[0]
-            # else:
-            #     pmDE_m = np.nanmedian(pmDE[1:])
-            pmDE_m = np.nanmedian(pmDE)
+            # Use HAO21 data
+            pmDE_m = pmDE[4]
         pmDE_l.append(round(pmDE_m, 3))
-
-        if np.isnan(Dist).all():
-            dmod_l.append(np.nan)
-        else:
-            # dmod_l.append(round(-5 + 5 * np.log10(np.nanmedian(Dist)), 2))
-            dm = []
-            for d in Dist:
-                if np.isnan(d):
-                    dm.append(np.nan)
-                else:
-                    dm.append(round(-5 + 5 * np.log10(d), 2))
-            dmod_l.append("_".join([str(_) for _ in dm]))
-
-        if np.isnan(extin).all():
-            extin_l.append(np.nan)
-        else:
-            extin_l.append("_".join([str(_) for _ in extin]))
-
-        if np.isnan(logAge).all():
-            logAge_l.append(np.nan)
-        else:
-            # logAge_l.append(round(np.nanmedian(logAge), 2))
-            la = []
-            for a in logAge:
-                if np.isnan(a):
-                    la.append(np.nan)
-                else:
-                    la.append(round(a, 2))
-            logAge_l.append("_".join([str(_) for _ in la]))
-
-        if np.isnan(FeH).all():
-            FeH_l.append(np.nan)
-        else:
-            # FeH_l.append(round(np.nanmedian(FeH), 2))
-            fe = []
-            for f in FeH:
-                if np.isnan(f):
-                    fe.append(np.nan)
-                else:
-                    fe.append(round(f, 2))
-            FeH_l.append("_".join([str(_) for _ in fe]))
 
     # Store combined databases
     final_DB = {
         'DB': db_l, 'ID': names_l, 'RA_ICRS': ra_l, 'DE_ICRS': dec_l,
         'GLON': glon_l, 'GLAT': glat_l, 'plx': plx_l, 'pmRA': pmRA_l,
-        'pmDE': pmDE_l, 'distmod': dmod_l, 'extin': extin_l,
-        'logage': logAge_l, 'FeH': FeH_l
+        'pmDE': pmDE_l
     }
 
     return final_DB
