@@ -132,3 +132,4 @@ dmypy.json
 /2_pipeline/pyUPMASK/*
 /2_pipeline/new_method/*
 /0_data/*
+/1_code/*.csv
