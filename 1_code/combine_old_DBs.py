@@ -15,22 +15,26 @@ dbs_folder = '../0_data/databases/old/'
 
 # Data stored per cluster (per database):
 # ID, RA, DEC, plx, pmRA, pmDE,
-# Dist, AV, Age, [Fe/H]
-N_vals = 9
+# Dist, AV, Age, [Fe/H] <-- Removed, data will be used elsewhere
+N_vals = 5
 
 dbs_names = {
-    'DIAS21': ['Cluster', 'RA_ICRS', 'DE_ICRS', 'Plx', 'pmRA', 'pmDE',
-               'Dist', 'Av', 'logage', '[Fe/H]'],
-    'CG20': ["Name", "RA", "DEC", "plx", "pmRA", "pmDE", 'DistPc', 'AVNN',
-             'AgeNN', None],
-    'MWSC': ['name', 'ra', 'dec', None, 'pm_ra', 'pm_dec', 'distance_modulus',
-             'e_bv', 'log_age', 'metallicity'],
-    'BICA19_all_names': [
-        'Name', 'GLON', 'GLAT', None, None, None, None, None, None, None]
+    'DIAS21': ['Cluster', 'RA_ICRS', 'DE_ICRS', 'Plx', 'pmRA', 'pmDE'],
+    # 'Dist', 'Av', 'logage', '[Fe/H]'],
+    'CG20': ["Name", "RA", "DEC", "plx", "pmRA", "pmDE"],
+    # 'DistPc', 'AVNN', 'AgeNN', None],
+    'MWSC': ['name', 'ra', 'dec', None, 'pm_ra', 'pm_dec'],
+    # 'distance_modulus', 'e_bv', 'log_age', 'metallicity'],
+    'TARRICQ22': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
+    # "Dist", None, "logAgeNN", None],
+    'HAO21': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA*", "pmDE"],
+    # None, None, "logt", None],
+    'BICA19_all_names': ['Name', 'GLON', 'GLAT', None, None, None],
+    # None, None, None, None]
 }
 
-# DIAS21, CG20, MWSC, BICA19
-DBs_IDS = np.array([1, 2, 3, 4])
+# DIAS21, CG20, MWSC, TARRICQ22, BICA19, HAO21
+DBs_IDS = np.array([1, 2, 3, 4, 5, 6])
 
 
 def main():
@@ -40,7 +44,7 @@ def main():
     DB_data, DB_names_match = {}, {}
     for DB, cols in dbs_names.items():
         data = pd.read_csv(
-            dbs_folder + DB + ".dat", sep=',', comment='#', index_col=False)
+            dbs_folder + DB + ".csv", sep=',', comment='#', index_col=False)
 
         print(DB, len(data))
 
@@ -50,18 +54,37 @@ def main():
                  for _ in names]
         DB_names_match[DB] = np.array(names)
 
-    cl_dict = {}
+    # Create initial dictionary
+    DB_id1, DB_id2 = 'None', 'DIAS21'
+    cl_dict = match_DBs(
+        {}, dbs_names, DB_names_match, DB_data, DB_id1, DB_id2)
 
-    cl_dict = DIAS21_CG20(
-        cl_dict, dbs_names, DB_names_match, DB_data, 'DIAS21', 'CG20')
+    DB_id1, DB_id2 = 'DIAS21', 'CG20'
+    cl_dict = match_DBs(
+        cl_dict, dbs_names, DB_names_match, DB_data, DB_id1, DB_id2)
     print(f"Clusters in cross-matched catalog so far: {len(cl_dict)}")
 
-    cl_dict = DIAS21_CG20_MWSC(
-        cl_dict, dbs_names, DB_names_match, DB_data, 'MWSC')
+    DB_id1 = DB_id1 + "+" + DB_id2
+    DB_id2 = 'MWSC'
+    cl_dict = match_DBs(
+        cl_dict, dbs_names, DB_names_match, DB_data, DB_id1, DB_id2)
     print(f"Clusters in cross-matched catalog so far: {len(cl_dict)}")
 
-    cl_dict = DIAS21_CG20_MWSC_BICA19(
-        cl_dict, dbs_names, DB_data, 'BICA19_all_names')
+    DB_id1 = DB_id1 + "+" + DB_id2
+    DB_id2 = 'TARRICQ22'
+    cl_dict = match_DBs(
+        cl_dict, dbs_names, DB_names_match, DB_data, DB_id1, DB_id2)
+    print(f"Clusters in cross-matched catalog so far: {len(cl_dict)}")
+
+    DB_id1 = DB_id1 + "+" + DB_id2
+    DB_id2 = 'HAO21'
+    cl_dict = match_DBs(
+        cl_dict, dbs_names, DB_names_match, DB_data, DB_id1, DB_id2)
+    print(f"Clusters in cross-matched catalog so far: {len(cl_dict)}")
+
+    DB_id1 = DB_id1 + "+" + DB_id2
+    DB_id2 = 'BICA19_all_names'
+    cl_dict = match_BICA19(cl_dict, dbs_names, DB_data, DB_id1, DB_id2)
     print(f"Clusters in final cross-matched catalog: {len(cl_dict)}")
 
     final_DB = combine_DBs(cl_dict)
@@ -69,6 +92,185 @@ def main():
     pd.DataFrame(final_DB).to_csv('OLD_DBs.csv', na_rep='nan', index=False)
     
     print("Finished")
+
+
+def DIAS21_CG20(cl_dict, dbs_names, DB_names_match, DB_data, DB_id1, DB_id2):
+    """
+    Find DIAS21 clusters in CG20
+    """
+    cols1, cols2 = dbs_names[DB_id1], dbs_names[DB_id2]
+    db2_idxs_match = []
+    for i, cl in enumerate(DB_names_match[DB_id1]):
+        # DIAS21
+        full_name = DB_data[DB_id1][cols1[0]][i]
+        # Save cluster data
+        cl_dict[full_name] = [[] for _ in range(N_vals)]
+
+        for q, col in enumerate(cols1[1:]):
+            if col is not None:
+                cl_dict[full_name][q].append(DB_data[DB_id1][col][i])
+            else:
+                cl_dict[full_name][q].append(np.nan)
+
+        # CG20
+        j = np.where(DB_names_match[DB_id2] == cl)[0]
+        if len(j) > 0:
+            # Match found
+            j = j[0]
+            db2_idxs_match.append(j)
+            for q, col in enumerate(cols2[1:]):
+                if col is not None:
+                    cl_dict[full_name][q].append(DB_data[DB_id2][col][j])
+                else:
+                    cl_dict[full_name][q].append(np.nan)
+        else:
+            # No match for this cluster in DIAS21
+            # print("CL in DIAS21 no match in CG20", i, full_name)
+            for q, col in enumerate(cols2[1:]):
+                cl_dict[full_name][q].append(np.nan)
+
+    print(f"\nClusters in {DB_id1} matched to clusters in {DB_id2}: "
+          + f"{len(db2_idxs_match)}")
+    print(f"Clusters in {DB_id1} not matched to clusters in {DB_id2}: "
+          + f"{len(DB_data[DB_id1]) - len(db2_idxs_match)}")
+
+    cl_dict = store_no_match(
+        dbs_names, DB_data, cl_dict, DB_id1, DB_id2, db2_idxs_match)
+
+    return cl_dict
+
+
+def match_DBs(
+        cl_dict, dbs_names, DB_names_match, DB_data, DB_id1, DB_id2
+):
+    """
+    Match DB1 with DB2
+    """
+    cl_dict, db2_idxs_match = store_match(
+        DB_data, DB_names_match, cl_dict, DB_id1, DB_id2)
+
+    cl_dict = store_no_match(
+        dbs_names, DB_data, cl_dict, DB_id1, DB_id2, db2_idxs_match)
+
+    return cl_dict
+
+
+def store_match(DB_data, DB_names_match, cl_dict, DB_id1, DB_id2):
+    """
+    """
+    N_old = len(cl_dict)
+    cols3 = dbs_names[DB_id2]
+    db2_idxs_match = []
+    for i, (cl, vals) in enumerate(cl_dict.items()):
+
+        cl_match = cl.lower().replace('_', '').replace(' ', '').replace('-', '')
+        j = np.where(DB_names_match[DB_id2] == cl_match)[0]
+        if len(j) > 0:
+            # Match found
+            j = j[0]
+            db2_idxs_match.append(j)
+            for q, col in enumerate(cols3[1:]):
+                if col is not None:
+                    cl_dict[cl][q].append(DB_data[DB_id2][col][j])
+                else:
+                    cl_dict[cl][q].append(np.nan)
+        else:
+            # No match for this cluster in DB2
+            # print(f"CL in {DB_id1} no match in {DB_id2}", i, cl_match)
+            for q, col in enumerate(cols3[1:]):
+                cl_dict[cl][q].append(np.nan)
+
+    print(f"\nClusters in {DB_id1} matched to clusters in {DB_id2}: "
+          + f"{len(db2_idxs_match)}")
+    print(f"Clusters in {DB_id1} not matched to clusters in {DB_id2}: "
+          + f"{N_old - len(db2_idxs_match)}")
+
+    return cl_dict, db2_idxs_match
+
+
+def store_no_match(
+        dbs_names, DB_data, cl_dict, DB_id1, DB_id2, db2_idxs_match
+):
+    """
+    Store clusters from DB1 with no match in DB2
+    """
+    N_nans = len(DB_id1.split('+'))
+
+    cols2 = dbs_names[DB_id2]
+    DB2_all_idxs = np.arange(0, len(DB_data[DB_id2]))
+    DB2_no_match = list(set(DB2_all_idxs) - set(db2_idxs_match))
+    print(f"Clusters in {DB_id2} not matched to clusters in {DB_id1}: "
+          + f"{len(DB2_no_match)}")
+    for i in DB2_no_match:
+        if DB_id2 == 'BICA19_all_names':
+            full_name = DB_data[DB_id2][cols2[0]][i].split('|')[0]
+        else:
+            full_name = DB_data[DB_id2][cols2[0]][i]
+        # print("CL in DB2 no match in DB1", i, full_name)
+        # Save cluster data
+        cl_dict[full_name] = [
+            [np.nan for _ in range(N_nans)] for _ in range(N_vals)]
+        for q, col in enumerate(cols2[1:]):
+            if col is not None:
+                if DB_id1 == 'None':
+                    cl_dict[full_name][q] = [DB_data[DB_id2][col][i]]
+                else:
+                    cl_dict[full_name][q].append(DB_data[DB_id2][col][i])
+            else:
+                if DB_id1 == 'None':
+                    cl_dict[full_name][q] = [np.nan]
+                else:
+                    cl_dict[full_name][q].append(np.nan)
+
+    return cl_dict
+
+
+def match_BICA19(cl_dict, dbs_names, DB_data, DB_id1, DB_id2):
+    """
+    Match DIAS21+CG20+MWSC with BICA19
+    """
+    N_old = len(cl_dict)
+    cols4 = dbs_names[DB_id2]
+
+    DB_names_match = []
+    for names in DB_data[DB_id2][cols4[0]]:
+        all_names = names.split('|')
+        nm = [_.lower().replace('_', '').replace(' ', '').replace('-', '')
+              for _ in all_names]
+        DB_names_match.append(nm)
+
+    db2_idxs_match = []
+    for i, (cl, vals) in enumerate(cl_dict.items()):
+        cl_match = cl.lower().replace('_', '').replace(' ', '').replace(
+            '-', '')
+        j = -1
+        for jj, nl in enumerate(DB_names_match):
+            if cl_match in nl:
+                j = jj
+                break
+        if j > -1:
+            # Match found
+            db2_idxs_match.append(j)
+            for q, col in enumerate(cols4[1:]):
+                if col is not None:
+                    val = DB_data[DB_id2][col][j]
+                    cl_dict[cl][q].append(val)
+                else:
+                    cl_dict[cl][q].append(np.nan)
+        else:
+            # No match for this cluster in BICA19
+            for q, col in enumerate(cols4[1:]):
+                cl_dict[cl][q].append(np.nan)
+
+    print(f"\nClusters in {DB_id1} matched to clusters in {DB_id2}: "
+          + f"{len(db2_idxs_match)}")
+    print(f"Clusters in {DB_id1} not matched to clusters in {DB_id2}: "
+          + f"{N_old - len(db2_idxs_match)}")
+
+    cl_dict = store_no_match(
+        dbs_names, DB_data, cl_dict, DB_id1, DB_id2, db2_idxs_match)
+
+    return cl_dict
 
 
 def combine_DBs(cl_dict):
@@ -196,173 +398,6 @@ def combine_DBs(cl_dict):
     }
 
     return final_DB
-
-
-def DIAS21_CG20(cl_dict, dbs_names, DB_names_match, DB_data, DB_id1, DB_id2):
-    """
-    Find DIAS21 clusters in CG20
-    """
-    cols1, cols2 = dbs_names[DB_id1], dbs_names[DB_id2]
-    dias21_idxs_match = []
-    for i, cl in enumerate(DB_names_match[DB_id1]):
-        # DIAS21
-        full_name = DB_data[DB_id1][cols1[0]][i]
-        # Save cluster data
-        cl_dict[full_name] = [[] for _ in range(N_vals)]
-
-        for q, col in enumerate(cols1[1:]):
-            if col is not None:
-                cl_dict[full_name][q].append(DB_data[DB_id1][col][i])
-            else:
-                cl_dict[full_name][q].append(np.nan)
-
-        # CG20
-        j = np.where(DB_names_match[DB_id2] == cl)[0]
-        if len(j) > 0:
-            # Match found
-            j = j[0]
-            dias21_idxs_match.append(j)
-            for q, col in enumerate(cols2[1:]):
-                if col is not None:
-                    cl_dict[full_name][q].append(DB_data[DB_id2][col][j])
-                else:
-                    cl_dict[full_name][q].append(np.nan)
-        else:
-            # No match for this cluster in DIAS21
-            # print("CL in DIAS21 no match in CG20", i, full_name)
-            for q, col in enumerate(cols2[1:]):
-                cl_dict[full_name][q].append(np.nan)
-    print("\nClusters in DIAS21 matched to clusters in CG20: "
-          + f"{len(dias21_idxs_match)}")
-    print("Clusters in DIAS21 not matched to clusters in CG20: "
-          + f"{len(DB_data[DB_id1]) - len(dias21_idxs_match)}")
-
-    # Store clusters from CG20 with no match in DIAS21
-    DIAS21_all_idxs = np.arange(0, len(DB_data[DB_id2]))
-    DIAS21_no_match = list(set(DIAS21_all_idxs) - set(dias21_idxs_match))
-    print("Clusters in CG20 not matched to clusters in DIAS21: "
-          + f"{len(DIAS21_no_match)}")
-    for i in DIAS21_no_match:
-        full_name = DB_data[DB_id2][cols2[0]][i]
-        # print("CL in CG20 no match in DIAS21", i, full_name)
-        # Save cluster data
-        cl_dict[full_name] = [[np.nan] for _ in range(N_vals)]
-        for q, col in enumerate(cols2[1:]):
-            if col is not None:
-                cl_dict[full_name][q].append(DB_data[DB_id2][col][i])
-            else:
-                cl_dict[full_name][q].append(np.nan)
-
-    return cl_dict
-
-
-def DIAS21_CG20_MWSC(cl_dict, dbs_names, DB_names_match, DB_data, DB_id3):
-    """
-    Match DIAS21+CG20 with MWSC
-    """
-    N_old = len(cl_dict)
-    cols3 = dbs_names[DB_id3]
-    cg20_idxs_match = []
-    for i, (cl, vals) in enumerate(cl_dict.items()):
-        cl_match = cl.lower().replace('_', '').replace(' ', '').replace('-', '')
-        j = np.where(DB_names_match[DB_id3] == cl_match)[0]
-
-        if len(j) > 0:
-            # Match found
-            j = j[0]
-            cg20_idxs_match.append(j)
-            for q, col in enumerate(cols3[1:]):
-                if col is not None:
-                    cl_dict[cl][q].append(DB_data[DB_id3][col][j])
-                else:
-                    cl_dict[cl][q].append(np.nan)
-        else:
-            # No match for this cluster in MWSC
-            # print("CL in DIAS21+CG20 no match in MWSC", i, cl_match)
-            for q, col in enumerate(cols3[1:]):
-                cl_dict[cl][q].append(np.nan)
-    print("\nClusters in DIAS21+CG20 matched to clusters in MWSC: "
-          + f"{len(cg20_idxs_match)}")
-    print("Clusters in DIAS21+CG20 not matched to clusters in MWSC: "
-          + f"{N_old - len(cg20_idxs_match)}")
-
-    # Store clusters from MWSC with no match in DIAS21+CG20
-    CG20_all_idxs = np.arange(0, len(DB_data[DB_id3]))
-    MWSC_no_match = list(set(CG20_all_idxs) - set(cg20_idxs_match))
-    print("Clusters in MWSC not matched to clusters in DIAS21+CG20: "
-          + f"{len(MWSC_no_match)}")
-    for i in MWSC_no_match:
-        full_name = DB_data[DB_id3][cols3[0]][i]
-        # print("CL in MWSC no match in DIAS21+CG20", i, full_name)
-        # Save cluster data
-        cl_dict[full_name] = [[np.nan, np.nan] for _ in range(N_vals)]
-        for q, col in enumerate(cols3[1:]):
-            if col is not None:
-                cl_dict[full_name][q].append(DB_data[DB_id3][col][i])
-            else:
-                cl_dict[full_name][q].append(np.nan)
-
-    return cl_dict
-
-
-def DIAS21_CG20_MWSC_BICA19(cl_dict, dbs_names, DB_data, DB_id4):
-    """
-    Match DIAS21+CG20+MWSC with BICA19
-    """
-    N_old = len(cl_dict)
-    cols4 = dbs_names[DB_id4]
-
-    DB_names_match = []
-    for names in DB_data[DB_id4][cols4[0]]:
-        all_names = names.split('|')
-        nm = [_.lower().replace('_', '').replace(' ', '').replace('-', '')
-              for _ in all_names]
-        DB_names_match.append(nm)
-
-    bica19_idxs_match = []
-    for i, (cl, vals) in enumerate(cl_dict.items()):
-        cl_match = cl.lower().replace('_', '').replace(' ', '').replace(
-            '-', '')
-        j = -1
-        for jj, nl in enumerate(DB_names_match):
-            if cl_match in nl:
-                j = jj
-                break
-        if j > -1:
-            # Match found
-            bica19_idxs_match.append(j)
-            for q, col in enumerate(cols4[1:]):
-                if col is not None:
-                    val = DB_data[DB_id4][col][j]
-                    cl_dict[cl][q].append(val)
-                else:
-                    cl_dict[cl][q].append(np.nan)
-        else:
-            # No match for this cluster in BICA19
-            for q, col in enumerate(cols4[1:]):
-                cl_dict[cl][q].append(np.nan)
-    print("\nClusters in DIAS21+CG20+MWSC matched to clusters in BICA19: "
-          + f"{len(bica19_idxs_match)}")
-    print("Clusters in DIAS21+CG20+MWSC not matched to clusters in BICA19: "
-          + f"{N_old - len(bica19_idxs_match)}")
-
-    # Store clusters from BICA19 with no match in DIAS21+CG20+MWSC
-    BICA19_all_idxs = np.arange(0, len(DB_data[DB_id4]))
-    BICA19_no_match = list(set(BICA19_all_idxs) - set(bica19_idxs_match))
-    print("Clusters in BICA19 not matched to clusters in DIAS21+CG20+MWSC: "
-          + f"{len(BICA19_no_match)}")
-    for i in BICA19_no_match:
-        full_name = DB_data[DB_id4][cols4[0]][i].split('|')[0]
-        # Save cluster data
-        cl_dict[full_name] = [[np.nan, np.nan, np.nan] for _ in range(N_vals)]
-        for q, col in enumerate(cols4[1:]):
-            if col is not None:
-                val = DB_data[DB_id4][col][i]
-                cl_dict[full_name][q].append(val)
-            else:
-                cl_dict[full_name][q].append(np.nan)
-
-    return cl_dict
 
 
 def lonlat2radec(lon, lat):
