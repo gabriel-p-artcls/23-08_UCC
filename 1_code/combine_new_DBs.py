@@ -82,8 +82,8 @@ dbs_folder = "../0_data/databases/new/"
 dbs_names = {
     'QIN23': ['Name', 'RAdeg', 'DEdeg', 'plx', 'pmRA', 'pmDE', 'm-M', 'E(B-V)',
               'logAge', None, [True, 'mag', 'log', True]],
-    'LI23': ['id', 'ra', 'dec', 'plx', 'pmra', 'pmdec', None, None,
-             None, None, [True, 'mag', 'Gyr', False]],
+    # 'LI23': ['id', 'ra', 'dec', 'plx', 'pmra', 'pmdec', None, None,
+    #          None, None, [True, 'mag', 'Gyr', False]],
     'LI22': ['id', 'ra', 'dec', 'plx', 'pmRA', 'pmDE', 'm_M', 'E(V-I)',
              't', 'Z', [True, 'mag', 'Gyr', False]],
     'HE22_2': ['CWNU_id', 'l', 'b', 'plx', 'pmx', 'pmy', 'm-M', 'A0', 'logage',
@@ -113,9 +113,9 @@ dbs_names = {
 }
 
 DB_ids = {
-    'CASTRO18': 5, 'CASTRO19': 6, 'SIM19': 7, 'LIUPANG19': 8, 'CASTRO20': 9,
-    'FERREIRA20': 10, 'HE21': 11, 'CASTRO22': 12, 'HAO22': 13, 'HE22': 14,
-    'HE22_1': 15, 'HE22_2': 16, 'LI22': 17,  'QIN23': 18, 'LI23': 19
+    'CASTRO18': 7, 'CASTRO19': 8, 'SIM19': 9, 'LIUPANG19': 8, 'CASTRO20': 'a',
+    'FERREIRA20': 'b', 'HE21': 'c', 'CASTRO22': 'd', 'HAO22': 'e', 'HE22': 'f',
+    'HE22_1': 'g', 'HE22_2': 'g', 'LI22': 'i',  'QIN23': 'j',
 }
 
 
