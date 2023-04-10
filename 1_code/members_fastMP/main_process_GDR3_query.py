@@ -24,15 +24,34 @@ def run(frames_path, fdata, c_ra, c_dec, box_s_eq, plx_min, max_mag):
     """
     box_s_eq: Size of box to query (in degrees)
     """
-    # print("  ({:.3f}, {:.3f}); Box size: {:.2f}, Plx min: {:.2f}".format(
-    #       c_ra, c_dec, box_s_eq, plx_min))
+    print("  ({:.3f}, {:.3f}); Box size: {:.2f}, Plx min: {:.2f}".format(
+          c_ra, c_dec, box_s_eq, plx_min))
 
-    data_in_files, xmin_cl, xmax_cl, ymin_cl, ymax_cl = findFrames(
-        c_ra, c_dec, box_s_eq, fdata)
+    c_ra_l = [c_ra]
+    if c_ra - box_s_eq < 0:
+        print("Split frame, c_ra + 360")
+        c_ra_l.append(c_ra + 360)
+    if c_ra > box_s_eq > 360:
+        print("Split frame, c_ra - 360")
+        c_ra_l.append(c_ra - 360)
 
-    all_frames = query(
-        c_ra, c_dec, box_s_eq, frames_path, max_mag, data_in_files, xmin_cl,
-        xmax_cl, ymin_cl, ymax_cl, plx_min)
+    dicts = []
+    for c_ra in c_ra_l:
+        data_in_files, xmin_cl, xmax_cl, ymin_cl, ymax_cl = findFrames(
+            c_ra, c_dec, box_s_eq, fdata)
+
+        all_frames = query(
+            c_ra, c_dec, box_s_eq, frames_path, max_mag, data_in_files, xmin_cl,
+            xmax_cl, ymin_cl, ymax_cl, plx_min)
+
+        dicts.append(all_frames)
+
+    if len(dicts) > 1:
+        # Combine
+        all_frames = pd.concat([
+            dicts[0], dicts[1]]).drop_duplicates().reset_index(drop=True)
+    else:
+        all_frames = dicts[0]
 
     # print("Adding uncertainties")
     all_frames = uncertMags(all_frames)
@@ -56,8 +75,8 @@ def findFrames(c_ra, c_dec, box_s_eq, fdata):
     # ymin_cl, ymax_cl = c_lat - yl, c_lat + yl
 
     # These are the points that determine the range of *all* the frames
-    ra_min, ra_max = fdata['ra_min'], fdata['ra_max']
-    dec_min, dec_max = fdata['dec_min'], fdata['dec_max']
+    ra_min, ra_max = fdata['ra_min'].values, fdata['ra_max'].values
+    dec_min, dec_max = fdata['dec_min'].values, fdata['dec_max'].values
 
     # frame == 'galactic':
     box_s_eq = np.sqrt(2) * box_s_eq
@@ -70,18 +89,17 @@ def findFrames(c_ra, c_dec, box_s_eq, fdata):
     xmin_cl, xmax_cl = c_ra - xl, c_ra + xl
     ymin_cl, ymax_cl = c_dec - yl, c_dec + yl
 
+    frame_intersec = np.full(len(fdata), False)
     # Identify which frames contain the cluster region
     l2 = (xmin_cl, ymax_cl)  # Top left
     r2 = (xmax_cl, ymin_cl)  # Bottom right
-    frame_intersec = []
     for i, xmin_fr_i in enumerate(ra_min):
         l1 = (xmin_fr_i, dec_max[i])  # Top left
         r1 = (ra_max[i], dec_min[i])  # Bottom right
-        frame_intersec.append(doOverlap(l1, r1, l2, r2))
-    frame_intersec = np.array(frame_intersec)
+        frame_intersec[i] = doOverlap(l1, r1, l2, r2)
 
     data_in_files = list(fdata[frame_intersec]['filename'])
-    # print(f"  Cluster is present in {len(data_in_files)} frames")
+    print(f"  Cluster is present in {len(data_in_files)} frames")
 
     return data_in_files, xmin_cl, xmax_cl, ymin_cl, ymax_cl
 
@@ -106,7 +124,7 @@ def doOverlap(l1, r1, l2, r2):
     if (min_x1 > max_x2 or min_x2 > max_x1):
         return False
     # If one rectangle is above other
-    if(min_y1 > max_y2 or min_y2 > max_y1):
+    if (min_y1 > max_y2 or min_y2 > max_y1):
         return False
     return True
 
@@ -124,12 +142,6 @@ def query(
     for i, file in enumerate(data_in_files):
         with gzip.open(frames_path + file) as f:
             data = pd.read_csv(f, index_col=False)
-
-            # lon, lat = radec2lonlat(data['ra'].values, data['dec'].values)
-            # # print(lon, lat, data['l'], data['b'])
-            # # lon, lat = data['l'].values, data['b'].values
-            # mx = (lon >= xmin_cl) & (lon <= xmax_cl)
-            # my = (lat >= ymin_cl) & (lat <= ymax_cl)
 
             mx = (data['ra'] >= xmin_cl) & (data['ra'] <= xmax_cl)
             my = (data['dec'] >= ymin_cl) & (data['dec'] <= ymax_cl)
@@ -151,7 +163,7 @@ def query(
     gal_cent = radec2lonlat(c_ra, c_dec)
 
     if all_frames['l'].max() - all_frames['l'].min() > 180:
-        # print("Frame wraps around 360 in longitude. Fixing..")
+        print("Frame wraps around 360 in longitude. Fixing..")
 
         lon = all_frames['l'].values
         if gal_cent[0] > 180:
@@ -180,7 +192,7 @@ def query(
         'radial_velocity': 'RV', 'radial_velocity_error': 'e_RV'}
     )
 
-    # print(f"  {len(all_frames)} stars final")
+    print(f"  {len(all_frames)} stars final")
     return all_frames
 
 

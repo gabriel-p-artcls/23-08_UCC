@@ -6,50 +6,61 @@ import pandas as pd
 from scipy import spatial
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-import sys
 import main_process_GDR3_query as G3Q
-# insert at 1, 0 is the script path (or '' in REPL)
-sys.path.insert(1, '/home/gabriel/Github/fastmp/')  # Path to fastMP
+import time as t
+
+# # insert at 1, 0 is the script path (or '' in REPL)
+# import sys
+# sys.path.insert(1, '/home/gabriel/Github/fastmp/')  # Path to fastMP
 from fastmp import fastMP
 
 # Path to the database with Gaia DR3 data
-frames_path = '/media/gabriel/backup/gabriel/GaiaDR3/datafiles/'
+# frames_path = '/media/gabriel/backup/gabriel/GaiaDR3/datafiles_G20/'
+frames_path = '/home/gperren/GaiaDR3/datafiles_G20/'
 
 # Full database of clusters (in this folder)
-gaiadr3_path_full = "database_full.csv"
+gaiadr3_path_full = "final_DB.csv"
 # File that contains the regions delimited by each frame (in this folder)
 frames_ranges = 'frame_ranges.txt'
 
 # Maximum magnitude to retrieve
-max_mag = 19
+max_mag = 20
 
 # Minimum probability to store
 prob_min = 0.5
 
 # Run ID
 run_ID = os.path.basename(__file__).split('.')[0][-1:]
-# Create output folder
+# Create output folder in not present
 Path(f"out_{run_ID}").mkdir(parents=True, exist_ok=True)
+# Output folder
+out_path = f"out_{run_ID}/"
 
 
 def main(N_cl_extra=5):
     """
     N_cl_extra: number of extra clusters in frame to detect
     """
-
-    # Path to the database to process
-    gaiadr3_path_partial = f"process_partial_{run_ID}.csv"
-    # Output folder
-    out_path = f"out_{run_ID}/"
-
     # Generate final table
     with open(out_path + f"table_{run_ID}.csv", "w") as f:
         f.write(
             "ID,GLON,GLAT,RA_ICRS,DE_ICRS,plx,pmRA,pmDE,N_membs,Class,FC\n")
 
     # Read data
-    clusters_list, frames_data, database_full = read_input(
-        gaiadr3_path_partial, frames_ranges)
+    frames_data, database_full = read_input()
+    N_r = int(len(database_full) / 5.)
+    if run_ID == '1':
+        clusters_list = database_full[:N_r]
+    elif run_ID == '2':
+        clusters_list = database_full[N_r:2*N_r]
+    elif run_ID == '3':
+        clusters_list = database_full[2*N_r:3*N_r]
+    elif run_ID == '4':
+        clusters_list = database_full[3*N_r:4*N_r]
+    elif run_ID == '5':
+        clusters_list = database_full[4*N_r:]
+    # # Shuffle
+    # clusters_list = clusters_list.sample(frac=1).reset_index(drop=True)
 
     # Parameters used to search for close-by clusters
     database_full_names = np.array([_.lower() for _ in database_full['ID']])
@@ -61,10 +72,8 @@ def main(N_cl_extra=5):
     for index, cl in clusters_list.iterrows():
         name = cl['ID']
 
-        # if name in aa:
-        # if name not in ('Patchick_94',):
-        # # if 'LISC36' not in name:
-            # continue
+        # if name not in ('ASCC_10',):
+        #     continue
         print(index, name)
 
         # Get close clusters coords
@@ -73,9 +82,12 @@ def main(N_cl_extra=5):
 
         # Generate frame
         data = get_frame(frames_path, frames_data, cl)
-        data.to_csv(out_path + name + "_full.csv", index=False)
         # # Store full file?
+        # data.to_csv(out_path + name + "_full.csv", index=False)
+        # # Read from file?
         # data = pd.read_csv(out_path + name + "_full.csv")
+        # # Remove full file
+        # os.remove(out_path + name + "_full.csv")
 
         # Extract center coordinates
         xy_c, vpd_c, plx_c, fixed_centers = (cl['GLON'], cl['GLAT']), None,\
@@ -94,6 +106,7 @@ def main(N_cl_extra=5):
             data['e_pmDE'].values, data['e_Plx'].values])
 
         # Process with fastMP
+        start = t.time()
         while True:
             probs_all, N_membs = fastMP(
                 xy_c=xy_c, vpd_c=vpd_c, plx_c=plx_c, centers_ex=centers_ex,
@@ -106,8 +119,12 @@ def main(N_cl_extra=5):
             else:
                 # print("Re-run with fixed_centers = True")
                 fixed_centers = True
+        print("tt", round(t.time() - start, 1))
 
-        classif = get_classif(X[0], X[1], X[2], X[3], X[4], probs_all)
+        try:
+            classif = get_classif(X[0], X[1], X[2], X[3], X[4], probs_all)
+        except:
+            classif = 'FFF'
 
         print("{}: Nmembs {}, P>0.5 {}, {}".format(
               name, N_membs, (probs_all > 0.5).sum(), classif))
@@ -116,20 +133,14 @@ def main(N_cl_extra=5):
         write_out(run_ID, out_path, name, data, probs_all, N_membs, classif,
                   fixed_centers)
 
-        # Remove full file
-        os.remove(out_path + name + "_full.csv")
 
-
-def read_input(gaiadr3_path_partial, frame_ranges):
+def read_input():
     """
     Read input file with the list of clusters to process
     """
-    clusters_list = pd.read_csv(gaiadr3_path_partial)
-    # Shuffle
-    clusters_list = clusters_list.sample(frac=1).reset_index(drop=True)
-    frames_data = pd.read_csv(frame_ranges)
+    frames_data = pd.read_csv(frames_ranges)
     database_full = pd.read_csv(gaiadr3_path_full)
-    return clusters_list, frames_data, database_full
+    return frames_data, database_full
 
 
 def get_frame(frames_path, frames_data, cl):
@@ -188,37 +199,41 @@ def get_frame(frames_path, frames_data, cl):
     return data
 
 
-def get_close_cls(GDR3_f, GDR3_f_names, close_cl_idx, name):
+def get_close_cls(database_full, database_full_names, close_cl_idx, name):
     """
     Get data on the closest clusters to the one being processed
     """
     # Index to the cluster in the full list
-    idx = GDR3_f.index[GDR3_f_names == name.lower()][0]
+    idx = database_full.index[database_full_names == name.lower()][0]
     # Indexes to the closest clusters in XY
     ex_cls_idx = close_cl_idx[1][idx][1:]
     centers_ex = []
     for i in ex_cls_idx:
-        ex_cl_dict = {'xy': [GDR3_f['GLON'][i], GDR3_f['GLAT'][i]]}
-        if not np.isnan(GDR3_f['pmRA'][i]):
-            ex_cl_dict['pms'] = [GDR3_f['pmRA'][i], GDR3_f['pmDE'][i]]
-        if not np.isnan(GDR3_f['plx'][i]):
-            ex_cl_dict['plx'] = [GDR3_f['plx'][i]]
-
-        # print(GDR3_f['Name'][i], GDR3_f['GLON'][i], GDR3_f['GLAT'][i])
+        ex_cl_dict = {
+            'xy': [database_full['GLON'][i], database_full['GLAT'][i]]}
+        if not np.isnan(database_full['pmRA'][i]):
+            ex_cl_dict['pms'] = [
+                database_full['pmRA'][i], database_full['pmDE'][i]]
+        if not np.isnan(database_full['plx'][i]):
+            ex_cl_dict['plx'] = [database_full['plx'][i]]
 
         centers_ex.append(ex_cl_dict)
-
-    # ex_cl_dict = {'xy': [300.4, -16]}
-    # centers_ex.append(ex_cl_dict)
 
     return centers_ex
 
 
-def get_classif(lon, lat, pmRA, pmDE, plx, probs_final, rad_max=2):
+def get_classif(
+    lon, lat, pmRA, pmDE, plx, probs_final, rad_max=2, N_membs_min=25
+):
     """
     """
     # Filter stars beyond 2 times the 95th percentile distance from the center
     msk_membs = probs_final > 0.5
+    if msk_membs.sum() < N_membs_min:
+        msk_membs = probs_final > 0.25
+    if msk_membs.sum() < N_membs_min:
+        return 'DDD'
+
     xy_c = np.median([lon[msk_membs], lat[msk_membs]], 1)
     xy = np.array([lon[msk_membs], lat[msk_membs]]).T
     xy_rads = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
@@ -231,6 +246,11 @@ def get_classif(lon, lat, pmRA, pmDE, plx, probs_final, rad_max=2):
 
     # Select most probable members
     msk_membs = probs_final > 0.5
+    if msk_membs.sum() < N_membs_min:
+        msk_membs = probs_final > 0.25
+    if msk_membs.sum() < N_membs_min:
+        return 'DDD'
+
     lon_m, lat_m, pmRA_m, pmDE_m, plx_m = lon[msk_membs], lat[msk_membs],\
         pmRA[msk_membs], pmDE[msk_membs], plx[msk_membs]
 
@@ -348,14 +368,17 @@ def write_out(run_ID, out_path, name, data, probs_all, N_membs, classif,
     msk = probs_all > prob_min
 
     if N_membs > msk.sum():
-        p_sort = np.sort(probs_all)[::-1]
-        prob_min = p_sort[N_membs]
-        msk = probs_all > prob_min
+        idx = np.argsort(probs_all)[::-1][:N_membs]
+        msk = np.full(len(probs_all), False)
+        msk[idx] = True
 
     df = data[msk]
 
+    # Use first name
+    name = name.split(',')[0].replace(' ', '_')
+
     # Write member stars for cluster
-    df.to_csv(out_path + name + ".csv", index=False)
+    df.to_csv(out_path + name + ".gz", index=False, compression='gzip')
 
     lon, lat = np.median(df['GLON']), np.median(df['GLAT'])
     ra, dec = lonlat2radec(lon, lat)

@@ -12,7 +12,7 @@ path0 = "../0_data/cantat_gaudin_et_al_2020/CG_2020_members.csv"
 data_CG = pd.read_csv(path0)
 def main():
     # func1()
-    func2('Stock 11')
+    func2('Kronberger_4')
 
 
 def func1():

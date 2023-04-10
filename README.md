@@ -3,23 +3,47 @@
 
 <!-- MarkdownTOC -->
 
-- converting from .py to .ipynb
-- How can I run notebooks of a Github project in Google Colab?
-  - Databases cross-match
-    - New databases
-      - New databases with no data
-    - Old databases
-      - HAO21
-      - DIAS21
-      - CG20
-      - BICA19
-      - MWSC
-      - MWSC+DIAS21+CG20+BICA19 matching
-  - Cluster definition
-  - IAU naming convention
-  - Annotated clusters
-  - Clusters with issues
-  - Probably useful references
+- Databases included in cross-match
+  - BICA19
+  - KHARCHENKO12
+  - CANTAT20
+  - DIAS21
+  - HUNT21
+  - HUNT23
+  - TARRICQ22
+  - CASTRO18
+    - CASTRO19
+  - CASTRO20
+  - CASTRO22
+  - SIM19
+  - LIUPANG19
+  - FERREIRA19
+  - FERREIRA20
+  - FERREIRA21
+  - HE21
+  - HE22
+  - HE22_1
+  - HE22_2
+  - HAO20
+  - HAO22
+  - LI22
+  - QIN23
+  - CASADO21
+  - JAEHNIG21
+  - SANTOS21
+  - LI23
+  - CHI23_2
+  - CHI23
+  - CHI23_3
+  - Small databases included in HUNT23
+- Databases not included
+  - HAO21
+  - KOUNKEL20
+- Cross-matching results
+- Cluster definition
+- Annotated clusters
+- Clusters with issues
+- Probably useful references
 
 <!-- /MarkdownTOC -->
 
@@ -34,242 +58,81 @@ TODO:
   - [x] Test t-snes dim reduction <-- does not help
 - [ ] Add new databases [NASA/ADS Search](https://ui.adsabs.harvard.edu/search/filter_database_fq_database=AND&filter_database_fq_database=database%3A%22astronomy%22&filter_property_fq_property=AND&filter_property_fq_property=property%3A%22refereed%22&fq=%7B!type%3Daqp%20v%3D%24fq_database%7D&fq=%7B!type%3Daqp%20v%3D%24fq_property%7D&fq_database=(database%3A%22astronomy%22)&fq_property=(property%3A%22refereed%22)&q=abs%3A%22new%20open%20clusters%22&sort=date%20desc%2C%20bibcode%20desc&p_=0)
   - [ ] Download data for all databases including members
-- [ ] Generate a single database with all the necessary data
-- [x] Write script to fetch the cluster region + process with fastMP
-- [ ] Write script to generate plots
+- [x] Generate a single database with all the necessary data
 - [x] Make ucc.ar the landing site
+- [x] Write script to fetch the cluster region + process with fastMP
+- [x] Write script to generate plots
+- [x] Write a Jupyter notebook template
 - [ ] Write the landing page for the site
-- [ ] Write the template site for the clusters (https://app.aavso.org/vsp/)
-- [ ] Write a Jupyter notebook for each cluster (open in Colab)?
+- [x] Write the template site for the clusters (https://app.aavso.org/vsp/ ?)
+- [ ] Store the un-edited DBs to retrieve the fundamental parameters
+  - [ ] Write script to retrieve the fundamental parameters
+- [ ] Write script to name each cluster
+- [ ] Write script to generate each template page + plots + notebook
 - [ ] Write the article
 
 
-Clusters with some particularity:
-* Melotte_111 has a very large radius
 
+## Databases included in cross-match
 
+Before combining the databases we must first sanitize them so that they
+can be read appropriately. These are the databases and the changes made to each:
 
-# converting from .py to .ipynb
+### BICA19
+A Multi-band Catalog of 10978 Star Clusters ... in the Milky Way;
+2913 clusters (OCs); [Bica et al. 2019](https://ui.adsabs.harvard.edu/abs/2019AJ....157...12B/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=J/AJ/157/12/table3)
 
-https://stackoverflow.com/questions/62510114/converting-from-py-to-ipynb
-https://stackoverflow.com/questions/23292242/converting-to-not-from-ipython-notebook-format
-jupytext: https://jupytext.readthedocs.io/en/latest/using-cli.html
+The Vizier table contain 10978 entries. We keep only those with Class1 OC (open
+cluster) or OCC (open cluster candidate); this reduces the list to 3564 entries.
+This DB lists the FSR clusters as "FSR XXX" and the ESO clusters as
+"ESO XXX-XX" with no underscores or leading zeroes. I added 'RA_ICRS' and
+'DE_ICRS' columns to math the rest of the DBs.
 
-# How can I run notebooks of a Github project in Google Colab?
+Fixed:
+"FSR 429.MWSC 3667" --> "FSR 429,MWSC 3667"
+"Carraro 1.MWSC 1829" --> "Carraro 1,MWSC 1829"
+"Cernik 39" --> "Czernik 39"
+de Wit 1 --> Wit 1 (to match KHARCHENKO12)
+JS 1 --> Juchert-Saloran 1 (to match KHARCHENKO12)
+ESO 589-26,MW --> ESO 589-26
 
-https://stackoverflow.com/questions/62596466/how-can-i-run-notebooks-of-a-github-project-in-google-colab
+This is the only DB that lists the Ryu & Lee (2018) clusters. The original
+article claims to have found 721 new OCs (923 minus 202 embedded). BICA19 (page
+11) says that the Ryu & Lee article lists 719 OCs (921 minus 202 embedded).
+BICA19 lists in its Vizier table only 711 Ryu OCs, 4 of which are listed with
+alternative names (Teutsch J1814.6-2814|Ryu 563, Quartet|Ryu 858,
+GLIMPSE 70|Mercer 70|Ryu 273, LS 468|La Serena 468|Ryu 094). Hence there are
+707 Ryu clusters in the final BICA19 Vizier table.
 
-* Change the domain from 'github.com' to 'githubtocolab.com
-* Use:
-https://colab.research.google.com/github/{user}/{repo-name}/blob/master/{path}/{notebook-name}.ipynb
+For the Ryu clusters:
+*The average angular radius of the clusters is 1'.31±0 60.
+More specifically, 902 (98%) clusters are smaller than 3′, and
+823 (89%) clusters are even smaller than 2′.* [Ryu & Lee (2018)](https://ui.adsabs.harvard.edu/abs/2018ApJ...856..152R/abstract)
 
+### KHARCHENKO12
+Global survey of star clusters in the Milky Way. I. The
+Pipeline and ...; [Kharchenko et al. 2012](https://ui.adsabs.harvard.edu/abs/2012A%26A...543A.156K), [HEASARC](https://heasarc.gsfc.nasa.gov/W3Browse/all/mwsc.html)
 
+I retrieved the data from the HEASARC service selecting all clusters with
+'class' equal to "OPEN STAR CLUSTER", resulting in 2858 entries.
+This DB lists the FSR clusters as "FSR XXXX" with leading zeros and the ESO
+clusters as "ESO XXX-XX" with leading zeroes.
 
-### Databases cross-match
+vdBergh-Hagen --> BH ??? Are these different clusters always or not??
 
-We separate the analysis in two sections: *New databases* and *Old databases*.
+### CANTAT20
+Painting a portrait of the Galactic disc with its stellar clusters;
+[Cantat-Gaudin et al. 2020](https://ui.adsabs.harvard.edu/abs/2020A%26A...640A...1C), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=J/A%2bA/640/A1/table1)
 
-The first section contains databases recently published (from 2019 up to
-2023) which list newly discovered clusters that are not present in older
-databases.
+The table contains 2017 clusters. This DB lists the FSR clusters as "FSR_XXXX"
+with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
 
-The second section is made up of databases each compiling a set of known
-open clusters, all of them overlapping to some extent. The most recent one,
-HAO21, is also the largest with more than 3000 entries. After cleaning
-(particularly HAO21) and cross-matching these 4 databases we are left with
-XXXX unique open clusters.
+### DIAS21
+Updated parameters of 1743 open clusters based on Gaia DR2,
+[Dias et al. 2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.504..356D), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/504/356)
 
-
-#### New databases
-
-Some of these DBs contain members data (i.e.: the stars selected as cluster
-members) and all of them have parallax and proper motions center (useful for
-our membership analysis)
-
-* QIN23
-Hunting for Neighboring Open Clusters with Gaia DR3: 101 New Open Clusters
-within 500 pc; Qin et al. (2023)
-101 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2023ApJS..265...12Q/abstract), Tables provided by Qin & Chen
-
-* LI23  **REMOVE??**
-LISC Catalog of Star Clusters. II. High Galactic Latitude Open Clusters in
-Gaia EDR3; Li & Mao (2023)
-56 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2023ApJS..265....3L/abstract), [Zenodo](https://zenodo.org/record/7603419)
-
-* LI22
-LISC Catalog of Star Clusters. I. Galactic Disk Clusters in Gaia EDR3;
-Li et al. (2022)
-61 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2022ApJS..259...19L/abstract), [Zenodo](https://zenodo.org/record/5705371#.YZPASbFdsrs)
-
-* HE22_2
-Unveiling hidden stellar aggregates in the Milky Way: 1656 new star clusters
-found in Gaia EDR3; He et al. (2022)
-1656 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2022arXiv220908504H/abstract), [Vizier](https://cdsarc.cds.unistra.fr/ftp/vizier.submit/he22c/)
-
-* HE22_1
-A Blind All-sky Search for Star Clusters in Gaia EDR3: 886 Clusters within
-1.2 kpc of the Sun; He et al. (2022)
-270 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2022ApJS..262....7H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/262/7)
-
-* HE22
-New Open-cluster Candidates Found in the Galactic Disk Using Gaia DR2/EDR3
-Data, He et al. 2022
-541 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2022ApJS..260....8H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/260/8)
-
-* HAO22
-Newly detected open clusters in the Galactic disk using Gaia EDR3,
-Hao et al. 2022
-704 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2022A%26A...660A...4H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/660/A4)
-
-* CASTRO22
-Hunting for open clusters in Gaia EDR3: 628 new open clusters found with
-OCfinder, Castro-Ginard et al. 2022
-628 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2022A%26A...661A.118C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/661/A118)
-
-* HE21
-A catalogue of 74 new open clusters found in Gaia Data-Release 2,
-He et al. (2021)
-74 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2021RAA....21...93H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/other/RAA/21.93)
-
-* CASTRO20
-Hunting for open clusters in Gaia DR2: 582 new open clusters .. Galactic disc,
-Castro-Ginard et al. 2020
-570 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2020A%26A...635A..45C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/635/A45)
-
-* FERREIRA20
-Discovery and astrophysical properties of Galactic open clusters in dense
-stellar fields using Gaia DR2, Ferreira et al. (2020)
-25 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.2021F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/496/2021)
-
-* CASTRO19
-Hunting for open clusters in Gaia DR2: the Galactic anticentre,
-Castro-Ginard et al. 2019
-53 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2019A%26A...627A..35C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/627/A35)
-
-* LIUPANG19
-A Catalog of Newly Identified Star Clusters in Gaia DR2, Liu & Pang 2019
-76 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2019ApJS..245...32L/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/245/32)
-
-* SIM19
-207 New Open Star Clusters within 1 kpc from Gaia Data Release, Sim et al. 2019
-207 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2019JKAS...52..145S/abstract), From Table 2 in online article
-**138 of these clusters are included in Cantat-Gaudin & Anders (2020; CGA20) as
-UPK since for 66 they were not able to compute memberships, and 3 were
-duplicated UBC clusters. I thus remove these 3 clusters: UPK 19 (UBC 32),
-UPK 172 (UBC 10a), and UPK 327 (UBC 88); note that CGA20 mistakenly wrote
-UPK 176 instead of UPK 172**
-
-* CASTRO18
-A new method for unveiling open clusters in Gaia. New nearby open clusters
-confirmed by DR2, Castro-Ginard et al. 2018
-23 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2018A%26A...618A..59C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/618/A59)
-
-
-##### New databases with no data
-
-* CHI23_2
-Identifying 46 New Open Cluster Candidates in Gaia EDR3 Using a Hybrid
-pyUPMASK and Random Forest Method; Chi et al. (2023)
-46 clusters
-[Article][https://ui.adsabs.harvard.edu/abs/2023ApJS..265...20C/abstract], email sent to weishoulin@astrolab.cn
-
-* CHI23
-LISC Catalog of Open Clusters.III. 83 Newly found Galactic disk open clusters
-using Gaia EDR3; Chi et al. (2023)
-83 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2023arXiv230208926C/abstract), email sent to zhongmuli@126.com
-
-
-
-#### Old databases
-
-* HAO21
-Evolution of the local spiral structure of the Milky Way revealed by open
-clusters, Hao et al. (2021)
-3794 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2021A%26A...652A.102H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/652/A102)
-
-* DIAS21
-Updated parameters of 1743 open clusters based on Gaia DR2, Dias et al. 2021
-1743 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2021MNRAS.504..356D), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/504/356)
-
-* CG20
-Painting a portrait of the Galactic disc with its stellar clusters,
-Cantat-Gaudin et al. 2020
-2017 clusters
-[Article](https://ui.adsabs.harvard.edu/abs/2020A%26A...640A...1C), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=J/A%2bA/640/A1/table1)
-
-* BICA19
-A Multi-band Catalog of 10978 Star Clusters ... in the Milky Way,
-Bica et al. 2019
-2913 clusters (OCs)
-[Article](https://ui.adsabs.harvard.edu/abs/2019AJ....157...12B/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=J/AJ/157/12/table3)
-
-* MWSC
-Data retrieved from [HEASARC](https://heasarc.gsfc.nasa.gov/W3Browse/all/mwsc.html) selecting all clusters with 'class' equal to
-"OPEN STAR CLUSTER"
-2913 clusters (OPEN STAR CLUSTER)
-
-
-##### HAO21
-
-This DB contains duplicated entries for 116 clusters and 3 clusters that are
-listed three times. We kept the clusters with the largest number of members,
-checking that their proper motions were consistent with those from CG20, or
-those from DIAS21 if CG20 proper motions were not available. In case proper
-motions are very discrepant, we removed both clusters. If no proper motions
-are available, we selected the one with the largest number of members.
-
-Duplicated clusters like 'vdBergh-Hagen_34' have very discrepant values
-throughout the literature or with other catalogues and were removed from
-this catalog.
-
-The original number of entries in HAO21 is 3794, and the final number of
-entries is 3666 (`3794-3666 = 128 = 116+3*2+6`).
-
-Removed triple entries:
-```
-2721,Basel_11a,109.281,0.033,-13.97,0.027,228.262,-0.773,0.713,0.03,1,-1.56,0.048,0.918,0.078,7.8,0.179,       ,      ,     ,  ,27,Dias et al. 2002         ,Basel 11a
-686,Basel_11A,109.3,0.075,-13.995,0.062,228.292,-0.768,0.71,0.032,1,-1.597,0.016,0.974,0.019,7.42,      ,       ,      ,     ,  ,35,MWSC                     ,Basel 11A
-1129,vdBergh-Hagen_87,151.173,0.097,-55.408,0.031,280.749,0.112,0.417,0.023,1,-6.176,0.071,2.692,0.05,7.3,      ,       ,      ,     ,  ,31,MWSC                     ,Cl VDBH 87
-2658,BH_87,151.09,0.038,-55.423,0.018,280.719,0.072,0.456,0.026,1,-6.017,0.224,3.134,0.177,8.4,      ,       ,      ,     ,  ,30,Dias et al. 2002         ,Cl VDBH 87
-1633,vdBergh-Hagen_217,259.08,0.044,-40.803,0.041,346.795,-1.508,0.396,0.025,1,-0.638,0.081,-1.819,0.077,7.7,      ,       ,      ,     ,  ,42,MWSC                     ,Cl VDBH 217
-2701,BH_217,259.072,0.026,-40.827,0.026,346.772,-1.517,0.352,0.029,1,-0.705,0.017,-1.881,0.03,7.7,      ,       ,      ,     ,  ,45,Dias et al. 2002         ,Cl VDBH 217
-```
-Removed clusters:
-```
-943,vdBergh-Hagen_34,127.832,0.1,-44.482,0.074,262.569,-2.947,0.555,0.026,1,-4.148,0.275,4.494,0.209,8.48,      ,       ,      ,     ,  ,32,MWSC                     ,Cl VDBH 34
-2817,BH_34,127.908,0.155,-44.528,0.101,262.638,-2.931,0.277,0.02,1,-3.211,0.054,3.982,0.057,8.88,0.204,45.45,0.81,0.1,3,64,Dias et al. 2002         ,Cl VDBH 34
-1186,vdBergh-Hagen_99,159.454,0.332,-59.194,0.126,286.553,-0.639,0.331,0.015,1,-6.036,0.148,2.803,0.09,8,      ,       ,      ,     ,  ,87,MWSC                     ,Cl VDBH 99
-2808,BH_99,159.443,0.174,-59.21,0.089,286.556,-0.656,0.355,0.02,1,-6.254,0.048,2.842,0.026,7.605,      ,-0.19,1.01,0.07,9,214,Dias et al. 2002         ,Cl VDBH 99
-2867,BH_111,167.29,0.036,-63.836,0.015,291.944,-3.168,0.337,0.024,1,-6.863,0.253,2.301,0.115,8.35,      ,       ,      ,     ,  ,34,Dias et al. 2002         ,Cl VDBH 111
-1227,vdBergh-Hagen_111,167.254,0.217,-63.842,0.103,291.931,-3.18,0.311,0.021,1,-6.13,0.102,2.031,0.068,8.35,      ,       ,      ,     ,  ,105,MWSC                     ,Cl VDBH 111
-```
-The fact that the same clusters are assigned wildly different parameters in this
-works warns us to be cautious about the values here presented.
-
-HAO21 presents 1807 matches with CG20. Out of these:
-- 99,164  (~5.5%,9%)  have pmRA rel. differences >25%,>10%
-- 118,179 (~6.5%,10%) have pmDE rel. differences >25%,>10%
-- 383,662 (~21%,37%)  have plx rel. differences >25%,>10%
-
-##### DIAS21
+The table contains 1743 clusters. This DB lists the FSR clusters as "FSR_XXXX"
+with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
 
 This DB contains wrong RA data for several clusters (differences with HAO21:
 `10>1 deg`, `14>0.5 deg`, `86>0.1 deg`)
@@ -287,123 +150,291 @@ NGC_7789     9.324   0.211  0.133
 Berkeley_59  3.097   0.137  nan
 ```
 
-Changed all FSR clusters from "FSR 00XX" to "FSR_XX" and all ESO clusters from
-"ESO 00XX-0X" to "ESO_XXXX_XX" to match the other DBs
+### HUNT21
+Improving the open cluster census. I. Comparison of clustering algorithms
+applied to Gaia DR2 data, [Hunt & Reffert (2021)](https://ui.adsabs.harvard.edu/abs/2021A%26A...646A.104H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/646/A104)
 
-##### CG20
+This table lists 41 'PHOC_' clusters.
 
-* Cantat-Gaudin & Anders (2020)
+### HUNT23
+Improving the open cluster census. II. An all-sky cluster catalogue
+with Gaia DR3, [Hunt & Reffert (2021)](https://ui.adsabs.harvard.edu/abs/2023arXiv230313424H/abstract), [Vizier]() ???
 
-1481 clusters (435833 stars with P>0.01); G_max=18
-Mean   = 294 stars per cluster (435833/1481)
+The table contains 7167 clusters. This DB lists the FSR clusters as "FSR_XXX"
+with no leading zeros and the ESO clusters as "ESO_XXX-XX" with no leading
+zeroes.
 
-* Cantat-Gaudin et al. (2020)
+Added the names of the HSC_ clusters to the 'name_all' column that were missing,
+except for line 3400 (HSC_1995) were a cluster was already identified. Added
+the name of the NGC_2533 cluster in the "name_all" column (4587 line) which
+was also missing.
 
-2017 clusters (234129 stars with P>0.7); parameters for 1867.
-Mean   = 125 stars per cluster (234129/1867)
+Fixed:
+ESO 589-26,MW --> ESO 589-26 (dragged from BICA19)
 
-1. What is the G limit used?
-  The hard limit is 18, but there are a 15 stars up to ~19.6. These belong to
-  Hyades/Melotte 25 (9) and Melotte 111 (6)
-2. How were very large clusters processed?
-  They were not processed with UPMASK. This is explained in Sect 2.1.
+### TARRICQ22
+Structural parameters of 389 local open clusters,
+[Tarricq et al. (2022)](https://ui.adsabs.harvard.edu/abs/2022A%26A...659A..59T/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/659/A59)
 
-Changed all FSR clusters from "FSR 00XX" to "FSR_XX" and all ESO clusters from
-"ESO 00XX-0X" to "ESO_XXXX_XX" to match the other DBs
+The table contains 467 clusters. This DB lists the FSR clusters as "FSR_XXX"
+with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
 
-##### BICA19
+### CASTRO18
+A new method for unveiling open clusters in Gaia. New nearby open
+clusters confirmed by DR2, [Castro-Ginard et al. 2018](https://ui.adsabs.harvard.edu/abs/2018A%26A...618A..59C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/618/A59)
 
-This is the only DB that lists the Ryu & Lee (2018) clusters. The original
-article claims to have found 721 new OCs (923 minus 202 embedded). BICA19 (page
-11) says that the Ryu & Lee article lists 719 OCs (921 minus 202 embedded).
-BICA19 lists in its Vizier table only 711 Ryu OCs, 4 of which are listed with
-alternative names (Teutsch J1814.6-2814|Ryu 563, Quartet|Ryu 858,
-GLIMPSE 70|Mercer 70|Ryu 273, LS 468|La Serena 468|Ryu 094). Hence there are
-707 Ryu clusters in the final BICA19 Vizier table.
+The table contains 23 UBC clusters.
 
-Fixed "Carraro 1.MWSC 1829" --> "Carraro 1|MWSC 1829"
-Fixed "Cernik 39" --> "Czernik 39"
+#### CASTRO19
+Hunting for open clusters in Gaia DR2: the Galactic anticentre,
+[Castro-Ginard et al. 2019](https://ui.adsabs.harvard.edu/abs/2019A%26A...627A..35C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/627/A35)
 
-##### MWSC
+The table contains 53 UBC clusters.
 
-Changed all FSR clusters from "FSR 00XX" to "FSR_XX" and all ESO clusters from
-"ESO 00XX-0X" to "ESO_XXXX_XX" to match the other DBs
+### CASTRO20
+Hunting for open clusters in Gaia DR2: 582 new open clusters ..
+Galactic disc, [Castro-Ginard et al. 2020](https://ui.adsabs.harvard.edu/abs/2020A%26A...635A..45C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/635/A45)
 
-vdBergh-Hagen --> BH
+The table contains 570 UBC clusters.
+
+### CASTRO22
+Hunting for open clusters in Gaia EDR3: 628 new open clusters
+found with OCfinder, [Castro-Ginard et al. 2022](https://ui.adsabs.harvard.edu/abs/2022A%26A...661A.118C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/661/A118)
+
+The table contains 628 UBC clusters numbered from UBC 1001 in order to
+differentiate them from the UBC clusters found using Gaia DR2 in the previous
+articles.
+
+### SIM19
+207 New Open Star Clusters within 1 kpc from Gaia Data Release,
+[Sim et al. 2019](https://ui.adsabs.harvard.edu/abs/2019JKAS...52..145S/abstract), Data taken from Table 2 in online article
+
+The table contains 207 UPK clusters. Three of these clusters were identified
+as duplicated UBC clusters IN CG20. I thus remove these 3 clusters: UPK 19
+(UBC 32), UPK 172 (UBC 10a), and UPK 327 (UBC 88); note that CGA20 mistakenly
+wrote UPK 176 instead of UPK 172. Added (ra, dec) columns and a plx column
+estimated as 1000/dist_pc
+
+### LIUPANG19
+A Catalog of Newly Identified Star Clusters in Gaia DR2,
+[Liu & Pang 2019](https://ui.adsabs.harvard.edu/abs/2019ApJS..245...32L/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/245/32)
+
+The table contains 76 clusters with no acronym given. I added 'FoF_' to match
+HUNT23.
+
+### FERREIRA19
+Three new Galactic star clusters discovered in the field of
+the open cluster NGC 5999 ..., [Ferreira et al. (2019)](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483.5508F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/483/5508)
+
+The table contains 3 UFMG clusters. Added (ra, de) columns.
+
+### FERREIRA20
+Discovery and astrophysical properties of Galactic open
+clusters in dense..., [Ferreira et al. (2020)](https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.2021F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/496/2021)
+
+The table contains 25 UFMG clusters. Added (ra, de) columns.
+
+### FERREIRA21
+New star clusters discovered towards the Galactic bulge
+direction using Gaia DR2, [Ferreira et al. (2021)](https://ui.adsabs.harvard.edu/abs/2021MNRAS.502L..90F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/502/L90)
+
+The table contains 34 UFMG clusters.
+
+### HE21
+A catalogue of 74 new open clusters found in Gaia Data-Release 2,
+[He et al. (2021)](https://ui.adsabs.harvard.edu/abs/2021RAA....21...93H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/other/RAA/21.93)
+
+The table contains 74 with no acronym, added 'CWNU_'. Added (ra, de) columns.
+
+### HE22
+New Open-cluster Candidates Found in the Galactic Disk Using Gaia
+DR2/EDR3 Data, [He et al. 2022](https://ui.adsabs.harvard.edu/abs/2022ApJS..260....8H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/260/8)
+
+The table contains 541 with no acronym, added 'CWNU_'.
+
+### HE22_1
+A Blind All-sky Search for Star Clusters in Gaia EDR3: 886
+Clusters within 1.2 kpc of the Sun, [He et al. (2022)](https://ui.adsabs.harvard.edu/abs/2022ApJS..262....7H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/262/7)
+
+The table contains 270 'CWNU_' clusters.
+
+### HE22_2
+Unveiling hidden stellar aggregates in the Milky Way: 1656 new star
+clusters found in Gaia EDR3, [He et al. (2022)](https://ui.adsabs.harvard.edu/abs/2022arXiv220908504H/abstract), [Vizier](https://cdsarc.cds.unistra.fr/ftp/vizier.submit/he22c/)
+
+The table contains 1656 with no acronym, added 'CWNU_'. Added (ra, de) columns.
+This DB lists the cluster 1951 right on the field of the NGC 5139 (Omega
+Centauri) globular cluster. No real cluster is apparent there
+
+### HAO20
+Sixteen Open Clusters Discovered with Sample-based Clustering Search of Gaia
+DR2, [Hao et al. 2020](https://ui.adsabs.harvard.edu/abs/2020PASP..132c4502H/abstract), Data from Table 2
+
+This table lists 16 clusters with no acronym. Used 'HXWHB_' to match HUNT23
+
+### HAO22
+Newly detected open clusters in the Galactic disk using Gaia EDR3,
+[Hao et al. 2022](https://ui.adsabs.harvard.edu/abs/2022A%26A...660A...4H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/660/A4)
+
+This table lists 704 'OC_' clusters.
+
+### LI22
+LISC Catalog of Star Clusters. I. Galactic Disk Clusters in Gaia EDR3,
+[Li et al. (2022)](https://ui.adsabs.harvard.edu/abs/2022ApJS..259...19L/abstract), [Zenodo](https://zenodo.org/record/5705371#.YZPASbFdsrs)
+
+This table lists 61 'LISC_' clusters.
+
+### QIN23
+Hunting for Neighboring Open Clusters with Gaia DR3: 101 New Open
+Clusters within 500 pc, [Qin et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJS..265...12Q/abstract), Tables provided by Qin & Chen
+
+This table lists 101 'OSCN_' clusters.
+
+### CASADO21
+New open clusters found by manual mining of data based on Gaia DR2,
+[Casado (2021)](https://ui.adsabs.harvard.edu/abs/2021RAA....21..117C/abstract), Data from Table 1 in article
+
+This table lists 20 'Casado_' clusters.
+
+### JAEHNIG21
+Membership Lists for 431 Open Clusters in Gaia DR2 Using Extreme Deconvolution
+Gaussian Mixture Models, [Jaehnig et al. 2021](https://ui.adsabs.harvard.edu/abs/2021ApJ...923..129J/abstract), Data from Table 1 in article
+
+This table lists 11 'XDOCC-' clusters.
+
+### SANTOS21
+Canis Major OB1 stellar group contents revealed by Gaia,
+[Santos-Silva et al. 2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.508.1033S/abstract), Data from Table 1 in article
+
+This table lists 5 'CMa-' clusters.
+
+### LI23
+LISC Catalog of Star Clusters. II. High Galactic Latitude Open Clusters in
+Gaia EDR3; [Li & Mao (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJS..265....3L/abstract), [Zenodo](https://zenodo.org/record/7603419)
+
+This table lists 56 'LISC' clusters but only 35 are kept as "real" objects.
+The parallax distances are in very bad agreement with the the estimated
+distance moduli. These appear to either be MC clusters or not real clusters
+at all. HUNT23 recovers 0% of these clusters.
+
+### CHI23_2
+Identifying 46 New Open Cluster Candidates in Gaia EDR3 Using a Hybrid
+pyUPMASK and Random Forest Method; [Chi et al. (2023)][https://ui.adsabs.harvard.edu/abs/2023ApJS..265...20C/abstract], data taken
+from Table in the article (IOP)
+
+This table lists 46 clusters with no acronym, 'CWWL_' was added to match
+HUNT23.
+
+### CHI23
+LISC Catalog of Open Clusters.III. 83 Newly found Galactic disk open clusters
+using Gaia EDR3; [Chi et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023arXiv230208926C/abstract)
+
+The article mentions 83 clusters but only 82 are visible in the PDF. I sent an
+email to zhongmuli@126.com but never got an answer. Added 'LISC-III' to the
+names to match HUNT23. Added (ra, dec) columns.
+
+### CHI23_3
+**WARNING**: https://twitter.com/CantatGaudin/status/1638133660875456515
+Blind Search of The Solar Neighborhood Galactic Disk within 5kpc: 1179 new
+Star clusters found in Gaia DR3, [Chi et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023arXiv230310380C/abstrac), Table requested to
+authors
+
+The table lists 1179 clusters. Added CWWDL following the convention by HUNT23
+for DBs with no acronyms.
 
 
-##### MWSC+DIAS21+CG20+BICA19 matching
+### Small databases included in HUNT23
 
-Databases from which the "OLD" databases were generated:
+These 6 articles are small completely covered by HUNT23
 
-CG20 contains data from:
-LIUPANG19 (35; LP_XXX), CASTRO-18-19-20 (550; UBC_XXX_), SIM19 (138, UPK_XXX)
+Qin et al. (2021), Casado & Hendy (2023), Anders et al. (2022),
+Bastian (2019), Tian (2020), Zari et al. (2018)
 
-DIAS21 contains data from:
-LIUPANG19 (177; LP_XXX; DIAS21 lists clusters that are marked in LIUPAG19 as
-"Class 3" or "need confirmation" but does not list some confirmed clusters in
-LIUPAG19 such as LP_58), CASTRO-19-20 (287; UBC_XXX), SIM19 (127, UPK_XXX)
 
-We remove the clusters that are present in the original databases from all
-four DBs before processing. These are: LIUPANG19, CASTRO-18-19-20-22 (UBC),
-and SIM19 (UPK) clusters.
+## Databases not included
 
-There are 18 UBC clusters in BICA19 with 9 of them apparently associated to
-a previously identified cluster: Alessi 161|UBC 3, TRSG 4|UBC 1,
-Teutsch 179|UBC 9, AT 4|Alessi-Teutsch 4|Alessi 26|TRSG 3|UBC 12,
-Alessi 190|UBC 5, Alessi 145|UBC 13, Renou 23|UBC 8, Alessi 94|UBC 2,
-Teutsch 182|UBC 6. We remove the remaining 9.
+### HAO21
+Evolution of the local spiral structure of the Milky Way revealed by
+open clusters, [Hao et al. (2021)](https://ui.adsabs.harvard.edu/abs/2021A%26A...652A.102H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/652/A102)
 
-After cross-matching these four databases (removing the UBC clusters) using
-we have 4100 unique clusters.
+The original number of entries in HAO21 is 3794. This database contains many
+errors. It contains dozens of duplicated entries and even some that are listed
+thrice, e.g: ESO_368_14 (x2) + ESO_368-14; Basel_11a (x2) + Basel_11A;
+ESO_368_11 (x2) + ESO_368-11; ESO_130_06 (x2) + ESO_130-06. Furtheremore
+duplicated clusters are assigned very different fundamental parameters, which
+warns us to be cautious about the values here presented.
+
+HAO21 presents 1179 matches with CG20. Out of these:
+- 301,171 (~25%, 15%) have plx  rel. differences >25%,>50%
+- 65,48   (~6%, 4%)   have pmRA rel. differences >25%,>50%
+- 87,58   (~7%, 5%)   have pmDE rel. differences >25%,>50%
+
+Some clusters have wildly incorrect parameters. For example the cluster
+Melotte_25 is assigned a parallax of 0.264 mas by HAO21 when its true value is
+larger than 21 mas.
+
+For these reasons we exclude this database from the list.
+
+### KOUNKEL20
+Untangling the Galaxy. II. Structure within 3 kpc,
+[Kounkel et al. 2022](https://ui.adsabs.harvard.edu/abs/2020AJ....160..279K/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/AJ/160/279)
+
+This table lists moving groups rather than open clusters. Kounkel private
+communication:
+"*All of these populations are moving groups. The word "cluster" is so nebulous
+nowadays, we don't have a proper definition of what it means any more, outside
+of those classicaly identified.*"
+
+We thus include in our catalogue only the 1498 listed by HUNT23.
+
+
+
+## Cross-matching results
+
+After cross-matching the sanitized databases we have:
 
 ```
-DIAS21 1152
-CG20 1294
-MWSC 2858
-BICA19_all_names 2895
+1 BICA19 3564
+2 KHARCHENKO12 2858
+3 CANTAT20 2017
+4 DIAS21 1743
+5 HUNT21 41
+6 HUNT23 7167
+7 TARRICQ22 467
+8 CASADO21 20
+9 CASTRO18 23
+10 CASTRO19 53
+11 CASTRO20 570
+12 CASTRO22 628
+13 SIM19 204
+14 LIUPANG19 76
+15 FERREIRA19 3
+16 FERREIRA20 25
+17 FERREIRA21 34
+18 HE21 74
+19 HE22 541
+20 HE22_1 270
+21 HE22_2 1656
+22 HAO20 16
+23 HAO22 704
+24 LI22 61
+25 QIN23 101
+26 JAEHNIG21 11
+27 SANTOS21 5
+28 LI23 35
+29 CHI23_2 46
+30 CHI23 82
+31 CHI23_3 1179
 
-Clusters in DIAS21 matched to clusters in CG20: 1093
-Clusters in DIAS21 not matched to clusters in CG20: 59
-Clusters in CG20 not matched to clusters in DIAS21: 201
-Clusters in cross-matched catalog so far: 1353
-
-Clusters in DIAS21+CG20 matched to clusters in MWSC: 1119
-Clusters in DIAS21+CG20 not matched to clusters in MWSC: 234
-Clusters in MWSC not matched to clusters in DIAS21+CG20: 1739
-Clusters in cross-matched catalog so far: 3092
-
-Clusters in DIAS21+CG20+MWSC matched to clusters in BICA19: 1904
-Clusters in DIAS21+CG20+MWSC not matched to clusters in BICA19: 1188
-Clusters in BICA19 not matched to clusters in DIAS21+CG20+MWSC: 1008
-Clusters in final cross-matched catalog: 4100
+Clusters in final cross-matched catalog: 14507
 ```
 
-For the Ryu clusters:
-*The average angular radius of the clusters is 1'.31±0 60.
-More specifically, 902 (98%) clusters are smaller than 3′, and
-823 (89%) clusters are even smaller than 2′.* [Ryu & Lee (2018)](https://ui.adsabs.harvard.edu/abs/2018ApJ...856..152R/abstract)
-
-**UPDATE**
-There are 1906 clusters with parallax data only from HAO21, which is of low
-quality.
-
-There are 1457 clusters with no proper motions data in any DB, which means that
-there are 4137 clusters with PMs data in at least one of the DBs.
-There are 1906 clusters with PMs only in HAO21, which is of low
-quality.
-This means that there are **3363** (1457+1906) clusters with either no or low
-quality PMs data (ie: ~60% of the combined clusters).
-
-There are 1457 clusters with neither parallax nor proper motions data: 707 are
-Ryu, 388 are FSR, 51 are VVV, 46 are Teutsch, 39 are ESO, 30 are LS, 22 are
-Bica, the remaining 174 are mixed. These same clusters contain no parallax and
-no proper motions data separately (i.e.: there are no more clusters that do not
-contain just parallax data, and no more clusters that do not contain just
-proper motions data).
+There are 3059 clusters in BICA19 and KHARCHENKO12 with neither parallax nor
+proper motions data. There are 709 Ryu clusters, 117 NGC clusters, 75 VVV
+clusters, 202 MWSC clusters.
 
 
-### Cluster definition
+## Cluster definition
 
 Consider a point c in an n-dimensional space and an integer value m>0. We define
 a 'cluster' as the collection of m elements with the smallest n-dimensional
@@ -412,14 +443,7 @@ euclidean distance to c.
 
 
 
-### IAU naming convention
-
-https://cds.unistra.fr/Dic/iau-spec.html#S3.5.1
-
-
-
-
-### Annotated clusters
+## Annotated clusters
 
 IC_2157:  two separated clusters?
 IC_5146:  two separated clusters?
@@ -428,9 +452,11 @@ NGC_1333: second binary cluster at ~(157.9, -21.3). Possible trail of stars
 being ripped by IC_348
 Mamajek_1: there appears to be another unidentified cluster at ~(300.4, -16)
 NGC_2244: 2nd cluster in frame at ~(206.17, -2.3)?
+Loden 466 & Stock 14 appear to be the same cluster
+Melotte_111 has a very large radius
 
 
-### Clusters with issues
+## Clusters with issues
 
 1. BDSB93: CMD (not too) contaminated bc of too many members
 
@@ -491,11 +517,11 @@ NGC_2183: more clusters in frame. Apparently not. Cluster disrupted?
 
 
 
-### Probably useful references
+## Probably useful references
 
 - [Gaia colour-magnitude diagrams of young open clusters.., Negueruela &
    de Burgos (2023)](https://ui.adsabs.harvard.edu/abs/2023arXiv230300467N/abstract)
 - [Discovery and description of two young open clusters in the primordial
    group of NGC 6871, Casado & Hendy (2023)](https://ui.adsabs.harvard.edu/abs/2023MNRAS.tmp..104C/abstract)
-- []()
+- [Baumgardt catalog of globular clusters](https://people.smp.uq.edu.au/HolgerBaumgardt/globular/)
 

@@ -131,5 +131,5 @@ dmypy.json
 *sublime*
 /2_pipeline/pyUPMASK/*
 /2_pipeline/new_method/*
-/0_data/*
 /1_code/*.csv
+/0_data/CG_2017/*

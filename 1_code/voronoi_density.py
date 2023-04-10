@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 from astropy.stats import sigma_clipped_stats
+from astropy.coordinates import angular_separation
 from scipy.spatial import Voronoi, ConvexHull, voronoi_plot_2d
 from scipy.spatial.distance import cdist
 import matplotlib.pyplot as plt
@@ -21,6 +22,7 @@ def main(vorplot=True):
     data_all_cls = data_all_cls.reset_index()
 
     x, y = data_all_cls['GLON'], data_all_cls['GLAT']
+    pmRA, pmDE, plx = data_all_cls['pmRA'], data_all_cls['pmDE'], data_all_cls['plx']
     coords = np.array([x, y]).T
 
     # Find the distances to all clusters, for all clusters
@@ -31,19 +33,22 @@ def main(vorplot=True):
 
     cl_dists, clusts = [], []
     for i, j in enumerate(dist_idx):
-        cl_dists.append(dist[i][j])
-        clusts.append(
-            [data_all_cls['ID'][i], data_all_cls['ID'][j], round(dist[i][j] * 60, 3)])
+        # d = round(dist[i][j] * 60, 3)
+        d = round(angular_separation(x[i], y[i], x[j], y[j]) * 60, 3)
+        pm_d = np.sqrt((pmRA[i]-pmRA[j])**2 + (pmDE[i]-pmDE[j])**2)
+        plx_d = abs(plx[i] - plx[j])
+        if d < 1 and pm_d < 1 and plx_d < .05:
+            cl_dists.append(dist[i][j])
+            clusts.append(
+                [data_all_cls['DB'][i], data_all_cls['ID'][i],
+                 data_all_cls['DB'][j], data_all_cls['ID'][j], d,
+                 round(pm_d, 2), round(plx_d, 3), round(plx[i], 3)])
     idx = np.argsort(cl_dists)
     clusts = np.array(clusts)
 
     for cl in clusts[idx]:
         print(cl)
     breakpoint()
-
-    for i in idx:
-        dd = cl_dists[i]
-        print(data_all_cls['ID'][i], round(dd * 60., 3))
 
     # Print and plot voronoi cells
     vor, vols = voronoi_volumes(coords)
