@@ -19,55 +19,59 @@ plx, pmRa, pmDE: "val1, val2, ..."
 """
 
 dbs_folder = '../0_data/databases/'
+out_path = '../2_pipeline/'
 
 # Data stored per cluster (per database):
 # Name(s), RA, DEC, plx, pmRA, pmDE
 
 dbs_used = {
-    'BICA19': ['Name', 'RA_ICRS', 'DE_ICRS', None, None, None],
     'KHARCHENKO12': ['name', 'ra', 'dec', None, 'pm_ra', 'pm_dec'],
-    'CANTAT20': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA*", "pmDE"],
-    'DIAS21': ['Cluster', 'RA_ICRS', 'DE_ICRS', 'Plx', 'pmRA', 'pmDE'],
-    'HUNT21': ['Name', 'RA_ICRS', 'DE_ICRS', 'plx', 'pmRA', 'pmDE'],
-    'HUNT23': ['name', 'ra', 'dec', 'parallax', 'pmra', 'pmdec'],
-    'TARRICQ22': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
-    'CASADO21': ["Name", "RA_ICRS", "DE_ICRS", "plx", "pmra", "pmde"],
     'CASTRO18': ["Cluster", "_RA.icrs", "_DE.icrs", "Plx", "pmRA*", "pmDE"],
+    'BICA19': ['Name', 'RA_ICRS', 'DE_ICRS', None, None, None],
     'CASTRO19': ["Cluster", "RA_ICRS", "DE_ICRS", "Plx", "pmRA*", "pmDE"],
-    'CASTRO20': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
-    'CASTRO22': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
     'SIM19': ["ID", "RA_ICRS", "DE_ICRS", "plx", "pmRA*", "pmDE"],
     'LIUPANG19': ["ID", "_RA.icrs", "_DE.icrs", "plx", "pmRA", "pmDE"],
     'FERREIRA19': ["Name", "RA_ICRS", "DE_ICRS", None, "pmRA*", "pmDE"],
+    'CANTAT20': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA*", "pmDE"],
+    'CASTRO20': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
     'FERREIRA20': ["Name", "RA_ICRS", "DE_ICRS", "plxcl", "pmRAcl", "pmDEcl"],
+    'HAO20': ["Name", "ra", "dec", 'plx', "pmra", "pmde"],
+    'DIAS21': ['Cluster', 'RA_ICRS', 'DE_ICRS', 'Plx', 'pmRA', 'pmDE'],
+    'CASADO21': ["Name", "RA_ICRS", "DE_ICRS", "plx", "pmra", "pmde"],
     'FERREIRA21': ["Name", "RAJ2000", "DEJ2000", "plx", "pmRA", "pmDE"],
+    'HUNT21': ['Name', 'RA_ICRS', 'DE_ICRS', 'plx', 'pmRA', 'pmDE'],
+    'JAEHNIG21': ["Name", "ra", "dec", 'plx', "pmra", "pmde"],
+    'SANTOS21': ["Name", "ra", "dec", 'plx', "pmra", "pmde"],
     'HE21': ["OC", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
+    'CASTRO22': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
+    'TARRICQ22': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
+    'LI22': ["id", "ra", "dec", 'plx', "pmRA", "pmDE"],
     'HE22': ["Cluster", "_RA.icrs", "_DE.icrs", "Plx", "pmRA", "pmDE"],
     'HE22_1': ["Cluster", "_RA.icrs", "_DE.icrs", "plx", "pmRA", "pmDE"],
     'HE22_2': ["CWNU_id", "RA_ICRS", "DE_ICRS", "plx", "pmx", "pmy"],
-    'HAO20': ["Name", "ra", "dec", 'plx', "pmra", "pmde"],
     'HAO22': ["Cluster", "RA_ICRS", "DE_ICRS", 'plx', "pmRA", "pmDE"],
-    'LI22': ["id", "ra", "dec", 'plx', "pmRA", "pmDE"],
+    'HUNT23': ['name', 'ra', 'dec', 'parallax', 'pmra', 'pmdec'],
     'QIN23': ["Name", "RAdeg", "DEdeg", 'plx', "pmRA", "pmDE"],
-    'JAEHNIG21': ["Name", "ra", "dec", 'plx', "pmra", "pmde"],
-    'SANTOS21': ["Name", "ra", "dec", 'plx', "pmra", "pmde"],
     'LI23': ["id", "ra", "dec", 'plx', "pmra", "pmdec"],
     'CHI23_2': ["Name", "ra", "dec", 'plx', 'pmra', "pmde"],
     'CHI23': ["name", "RA_ICRS", "DE_ICRS", 'plx', 'pmra', "pmdec"],
     'CHI23_3': ["Id", "ra", "dec", 'plx', 'pmra', "pmdec"],
 }
 
-DBs_IDS = {}
-i = 0
-for db in dbs_used.keys():
-    DBs_IDS[db] = i + 1
-    i += 1
+DBs_IDS = {
+    'KHARCHENKO12': 1, 'CASTRO18': 2, 'BICA19': 3, 'CASTRO19': 4, 'SIM19': 5,
+    'LIUPANG19': 6, 'FERREIRA19': 7, 'CANTAT20': 8, 'CASTRO20': 9,
+    'FERREIRA20': 10, 'HAO20': 11, 'DIAS21': 12, 'CASADO21': 13,
+    'FERREIRA21': 14, 'HUNT21': 15, 'JAEHNIG21': 16, 'SANTOS21': 17,
+    'HE21': 18, 'CASTRO22': 19, 'TARRICQ22': 20, 'LI22': 21, 'HE22': 22,
+    'HE22_1': 23, 'HE22_2': 24, 'HAO22': 25, 'HUNT23': 26, 'QIN23': 27,
+    'LI23': 28, 'CHI23_2': 29, 'CHI23': 30, 'CHI23_3': 31,
+}
 
 
 def main():
     """
     """
-
     # data = pd.read_csv(dbs_folder + 'CHI23' + ".csv", index_col=False)
     # ra, dec = lonlat2radec(data['l'].values, data['b'].values)
     # data['RA_ICRS'], data['DE_ICRS'] = ra, dec
@@ -75,30 +79,45 @@ def main():
     # data.to_csv(dbs_folder+'CHI23_3.csv', index=False)
     # breakpoint()
 
-    DB_data, DB_names_match, DB_names = get_data_and_names(dbs_used)
+    # # # np.random.seed(12345)
+    # keys = list(dbs_used.keys())
+    # np.random.shuffle(keys)
+    # dbs_used2 = {}
+    # for k in keys:
+    #     dbs_used2[k] = dbs_used[k]
+
+    DB_data, DB_names_match, DB_names_orig = get_data_and_names(
+        dbs_used, DBs_IDS)
 
     unique_names, unique_names_orig = get_unique_names(
-        DB_names_match, DB_names)
+        DB_names_match, DB_names_orig)
 
     cl_dict = get_matches(
-        DB_data, DB_names_match, unique_names, unique_names_orig)
+        dbs_used, DB_data, DB_names_match, unique_names, unique_names_orig)
 
-    final_DB = combine_DBs(cl_dict)
+    final_DB = combine_DBs(cl_dict, DBs_IDS)
 
     print("Writing to file...")
-    pd.DataFrame(final_DB).to_csv('final_DB.csv', na_rep='nan', index=False)
+    pd.DataFrame(final_DB).to_csv(
+        out_path + '1_combined_DBs.csv', na_rep='nan', index=False)
     
-    print("Finished")
+    print("Combined database written to file")
 
 
-def get_data_and_names(dbs_used):
+def get_data_and_names(dbs_used, DBs_IDS):
     """
+    1. For each DB extract and store all its data --> DB_data
+    2. For each cluster in each DB extract and standardize its
+       name(s) --> DB_names_match
+    3. For each cluster in each DB extract its original unedited
+       name(s) --> DB_names_orig
     """
-    DB_data, DB_names_match, DB_names = {}, {}, {}
-    for DB, cols in dbs_used.items():
+    DB_data, DB_names_match, DB_names_orig, N_all = {}, {}, {}, 0
+    for DB, _ in dbs_used.items():
         # Load DB data
         data = pd.read_csv(dbs_folder + DB + ".csv", index_col=False)
         print(DBs_IDS[DB], DB, len(data))
+        N_all += len(data)
         # Store in dictionary
         DB_data[DB] = data
 
@@ -109,87 +128,170 @@ def get_data_and_names(dbs_used):
             names_l, names_l_orig = [], []
             names_s = names.split(',')
             for name in names_s:
-                name = name.strip()
-
-                if name.startswith("FSR"):
-                    _, n2 = name.split('FSR')
-                    # Remove the leading '_' for CANTAT20 & DIAS21
-                    if '_' in n2:
-                        name = "FSR_" + str(int(n2[1:]))
-                    else:
-                        name = "FSR_" + str(int(n2))
-
-                if name.startswith("ESO"):
-                    if '-' in name and '_' in name:
-                        # This is a HUNT23 cluster
-                        _, n2 = name.split('ESO')
-                        n3, n4 = n2[1:].split('-')
-                    else:
-                        _, n2 = name.split('ESO')
-                        try:
-                            n3, n4 = n2.split('-')
-                        except ValueError:
-                            # Remove the leading '_' for CANTAT20 & DIAS21
-                            n3, n4 = n2[1:].split('_')
-                    name = "ESO_" + str(int(n3)) + '_' + str(int(n4))
+                name = cluster_rename(name)
 
                 names_l.append(name.lower().replace('_', '').replace(
                                ' ', '').replace('-', ''))
                 names_l_orig.append(name)
 
             names_final.append(names_l)
+            # Store original names
             names_orig.append(names_l_orig)
 
         DB_names_match[DB] = names_final
-        DB_names[DB] = names_orig
+        DB_names_orig[DB] = names_orig
 
-    return DB_data, DB_names_match, DB_names
+    print(f"\n{N_all} clusters in all DBs")
+
+    return DB_data, DB_names_match, DB_names_orig
 
 
-def get_unique_names(DB_names_match, DB_names):
+def cluster_rename(name):
+    """
+    Standardize the naming of these clusters watching for 
+
+    FSR XXX w leading zeros
+    FSR XXX w/o leading zeros
+    FSR_XXX w leading zeros
+    FSR_XXX w/o leading zeros
+
+    ESO XXX-YY w leading zeros
+    ESO XXX-YY w/o leading zeros
+    ESO_XXX_YY w leading zeros
+    ESO_XXX_YY w/o leading zeros
+    ESO_XXX-YY w leading zeros
+    ESO_XXX-YY w/o leading zeros
+    """
+    name = name.strip()
+
+    if name.startswith("FSR"):
+        if '_' in name:
+            n2 = name.split('_')[1]
+        else:
+            n2 = name.split(' ')[1]
+        n2 = int(n2)
+        if n2 < 10:
+            n2 = '000' + str(n2)
+        elif n2 < 100:
+            n2 = '00' + str(n2)
+        elif n2 < 1000:
+            n2 = '0' + str(n2)
+        else:
+            n2 = str(n2)
+        name = "FSR_" + n2
+
+    if name.startswith("ESO"):
+        if ' ' in name[4:]:
+            n1, n2 = name[4:].split(' ')
+        elif '_' in name[4:]:
+            n1, n2 = name[4:].split('_')
+        elif '' in name[4:]:
+            n1, n2 = name[4:].split('-')
+
+        n1 = int(n1)
+        if n1 < 10:
+            n1 = '00' + str(n1)
+        elif n1 < 100:
+            n1 = '0' + str(n1)
+        else:
+            n1 = str(n1)
+        n2 = int(n2)
+        if n2 < 10:
+            n2 = '0' + str(n2)
+        else:
+            n2 = str(n2)
+        name = "ESO_" + n1 + '_' + n2
+
+    return name
+
+
+def get_unique_names(DB_names_match, DB_names_orig):
     """
     """
     all_names, all_names_orig = [], []
-    for k, v in DB_names_match.items():
-        all_names += v
-        v_orig = DB_names[k]
-        all_names_orig += v_orig
+    for k, names_match in DB_names_match.items():
+        all_names += names_match
+        all_names_orig += DB_names_orig[k]
 
     print("Extracting unique names...")
-    unique_names, unique_names_orig, idx_match = [], [], []
+
+    match_dict = {}
     N_all, pp = len(all_names), 10
-    for i, cl in enumerate(all_names):
-        if i in idx_match:
-            # If cluster was already matched, skip
-            continue
+
+    for i, names_l in enumerate(all_names):
         if 100 * (i / N_all) > pp:
             print(pp, "%")
             pp += 10
-        name_matches = list(cl)
-        # For each name for this cluster
-        for name in cl:
-            # For each remaining list of cluster names
-            for j, name_l in enumerate(all_names[i + 1:]):
-                # If this name is in this list
-                if name in name_l:
-                    # Store the index of the match
-                    j_match = j + i + 1
-                    idx_match.append(j_match)
-                    # Add the cluster name(s) to the list
-                    name_matches += name_l
-        unique_names.append(list(set(name_matches)))
-        unique_names_orig.append(all_names_orig[i])
+        uid = "cl" + str(i)
+
+        clid_m = []
+        for name in names_l:
+            # Check if any of these names is already in dictionary
+            for clid, d_names in match_dict.items():
+                if name in d_names[1]:
+                    clid_m += [clid]
+
+        if len(clid_m) == 0:
+            match_dict[uid] = [[], []]
+            match_dict[uid][0] = list(set(all_names_orig[i]))
+            match_dict[uid][1] = list(set(names_l))
+        elif len(clid_m) == 1:
+            clid_m = clid_m[0]
+            match_dict[clid_m][0] += all_names_orig[i]
+            match_dict[clid_m][1] += names_l
+            # Remove duplicates
+            match_dict[clid_m][0] = list(set(match_dict[clid_m][0]))
+            match_dict[clid_m][1] = list(set(match_dict[clid_m][1]))
+        else:
+            # Create new entry
+            match_dict[uid] = [[], []]
+            match_dict[uid][0] += all_names_orig[i]
+            match_dict[uid][1] += names_l
+            # Merge old entries into new entry
+            for clid in clid_m:
+                match_dict[uid][0] += list(match_dict[clid][0])
+                match_dict[uid][1] += list(match_dict[clid][1])
+                # Remove old entries from dictionary
+                del match_dict[clid]
+            # Remove duplicates
+            match_dict[uid][0] = list(set(match_dict[uid][0]))
+            match_dict[uid][1] = list(set(match_dict[uid][1]))
+
+    unique_names, unique_names_orig = [], []
+    for k, v in match_dict.items():
+        unique_names_orig.append(v[0])
+        unique_names.append(v[1])
+
+    # # Check for duplicates
+    # for i, cl in enumerate(unique_names):
+    #     flag_match = False
+    #     for cl0 in cl:
+    #         for j, cl_rest in enumerate(unique_names[i + 1:]):
+    #             for cl1 in cl_rest:
+    #                 if cl0 == cl1:
+    #                     flag_match = True
+    #                     break
+    #             if flag_match:
+    #                 break
+    #         if flag_match:
+    #             break
+    #     if flag_match:
+    #         print(i, i + 1 + j, cl, unique_names[i + 1 + j])
+    # print("end check")
 
     print(f"N={len(unique_names)} unique names identified")
+
     return unique_names, unique_names_orig
 
 
-def get_matches(DB_data, DB_names_match, unique_names, unique_names_orig):
+def get_matches(
+    dbs_used, DB_data, DB_names_match, unique_names, unique_names_orig
+):
     """
     """
     print("Matching databases...")
     cl_dict = {}
-    # For each list of names
+    # For each list of unique names
     N_all, pp = len(unique_names), 10
     for q, cl in enumerate(unique_names):
         if 100 * (q / N_all) > pp:
@@ -200,20 +302,24 @@ def get_matches(DB_data, DB_names_match, unique_names, unique_names_orig):
         cl_str = ','.join(unique_names_orig[q])
         cl_dict[cl_str] = {
             'DB': [], 'RA': [], 'DE': [], 'plx': [], 'pmra': [], 'pmde': []}
-        
+
         # For each DB
         for DB_ID, names_db in DB_names_match.items():
             df, cols = DB_data[DB_ID], dbs_used[DB_ID]
             ra, de, plx, pmra, pmde = cols[1:]
+
+            # For each name in this list of unique names
             for name in cl:
-                # For each name list in DB
                 db_match = False
+
+                # For each name list in this DB
                 for i, name_l in enumerate(names_db):
-                    # Match found
+
+                    # Unique name is in this list of names for this DB
                     if name in name_l:
                         db_match = True
                         cl_dict[cl_str]['DB'].append(DB_ID)
-                        # Extract data
+                        # Extract row from this DB
                         row = df.iloc[i]
                         # if DB_ID != 'DIAS21':
                         #     # This DB has bad data for RA
@@ -237,7 +343,7 @@ def get_matches(DB_data, DB_names_match, unique_names, unique_names_orig):
     return cl_dict
 
 
-def combine_DBs(cl_dict):
+def combine_DBs(cl_dict, DBs_IDS):
     """
     Store unique values for each cluster
     """
