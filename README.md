@@ -10,27 +10,27 @@
     - CASTRO19
   - BICA19
   - LIUPANG19
-  - CANTAT20
-  - DIAS21
-  - HUNT21
-  - TARRICQ22
-  - HUNT23
-  - CASTRO20
-  - CASTRO22
   - FERREIRA19
+  - CASTRO20
   - FERREIRA20
+  - CANTAT20
+  - HAO20
   - FERREIRA21
   - HE21
-  - HE22
-  - HE22_1
-  - HE22_2
-  - HAO20
-  - HAO22
-  - LI22
-  - QIN23
+  - DIAS21
+  - HUNT21
   - CASADO21
   - JAEHNIG21
   - SANTOS21
+  - TARRICQ22
+  - CASTRO22
+  - HE22
+  - HE22_1
+  - HE22_2
+  - HAO22
+  - LI22
+  - HUNT23
+  - QIN23
   - LI23
   - CHI23_2
   - CHI23
@@ -169,6 +169,24 @@ A Catalog of Newly Identified Star Clusters in Gaia DR2,
 The table contains 76 clusters with no acronym given. I added 'FoF_' to match
 HUNT23.
 
+### FERREIRA19
+Three new Galactic star clusters discovered in the field of
+the open cluster NGC 5999 ..., [Ferreira et al. (2019)](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483.5508F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/483/5508)
+
+The table contains 3 UFMG clusters. Added (ra, de) columns.
+
+### CASTRO20
+Hunting for open clusters in Gaia DR2: 582 new open clusters ..
+Galactic disc, [Castro-Ginard et al. 2020](https://ui.adsabs.harvard.edu/abs/2020A%26A...635A..45C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/635/A45)
+
+The table contains 570 UBC clusters.
+
+### FERREIRA20
+Discovery and astrophysical properties of Galactic open
+clusters in dense..., [Ferreira et al. (2020)](https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.2021F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/496/2021)
+
+The table contains 25 UFMG clusters. Added (ra, de) columns.
+
 ### CANTAT20
 Painting a portrait of the Galactic disc with its stellar clusters;
 [Cantat-Gaudin et al. 2020](https://ui.adsabs.harvard.edu/abs/2020A%26A...640A...1C), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=J/A%2bA/640/A1/table1)
@@ -178,6 +196,24 @@ with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
 
 BH --> VDBH per CDS recommendation
 LP_ --> FoF_ to match the original work LIUPANG19
+
+### HAO20
+Sixteen Open Clusters Discovered with Sample-based Clustering Search of Gaia
+DR2, [Hao et al. 2020](https://ui.adsabs.harvard.edu/abs/2020PASP..132c4502H/abstract), Data from Table 2
+
+This table lists 16 clusters with no acronym. Used 'HXWHB_' to match HUNT23
+
+### FERREIRA21
+New star clusters discovered towards the Galactic bulge
+direction using Gaia DR2, [Ferreira et al. (2021)](https://ui.adsabs.harvard.edu/abs/2021MNRAS.502L..90F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/502/L90)
+
+The table contains 34 UFMG clusters.
+
+### HE21
+A catalogue of 74 new open clusters found in Gaia Data-Release 2,
+[He et al. (2021)](https://ui.adsabs.harvard.edu/abs/2021RAA....21...93H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/other/RAA/21.93)
+
+The table contains 74 with no acronym, added 'CWNU_'. Added (ra, de) columns.
 
 ### DIAS21
 Updated parameters of 1743 open clusters based on Gaia DR2,
@@ -215,6 +251,25 @@ applied to Gaia DR2 data, [Hunt & Reffert (2021)](https://ui.adsabs.harvard.edu/
 
 This table lists 41 'PHOC_' clusters.
 
+### CASADO21
+New open clusters found by manual mining of data based on Gaia DR2,
+[Casado (2021)](https://ui.adsabs.harvard.edu/abs/2021RAA....21..117C/abstract), Data from Table 1 in article
+
+This table lists 20 'Casado_' clusters.
+
+### JAEHNIG21
+Membership Lists for 431 Open Clusters in Gaia DR2 Using Extreme Deconvolution
+Gaussian Mixture Models, [Jaehnig et al. 2021](https://ui.adsabs.harvard.edu/abs/2021ApJ...923..129J/abstract), Data from Table 1 in article
+
+This table lists 11 'XDOCC-' clusters. Changed 'XDOCC-0Y' to 'XDOCC-Y' to match
+HUNT23.
+
+### SANTOS21
+Canis Major OB1 stellar group contents revealed by Gaia,
+[Santos-Silva et al. 2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.508.1033S/abstract), Data from Table 1 in article
+
+This table lists 5 'CMa-' clusters.
+
 ### TARRICQ22
 Structural parameters of 389 local open clusters,
 [Tarricq et al. (2022)](https://ui.adsabs.harvard.edu/abs/2022A%26A...659A..59T/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/659/A59)
@@ -225,32 +280,6 @@ with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
 BH_99 --> VDBH_99
 LP_ --> FoF_
 
-### HUNT23
-Improving the open cluster census. II. An all-sky cluster catalogue
-with Gaia DR3, [Hunt & Reffert (2021)](https://ui.adsabs.harvard.edu/abs/2023arXiv230313424H/abstract), [Vizier]() ???
-
-The table contains 7167 clusters. This DB lists the FSR clusters as "FSR_XXX"
-with no leading zeros and the ESO clusters as "ESO_XXX-XX" with no leading
-zeroes.
-
-Added the names of the 'HSC_' clusters to the 'name_all' column that were
-missing, except for line 3400 (HSC_1995) were a cluster was already identified.
-Added the name of the NGC_2533 cluster in the "name_all" column (4587 line)
-which was also missing.
-
-Removed the 'Theia' moving groups.
-
-Fixed:
-ESO 589-26,MW --> ESO 589-26 (dragged from BICA19)
-ESO_429-429 --> ESO_429-02 (according to CDS coords)
-BH --> VDBH per CDS recommendation
-
-### CASTRO20
-Hunting for open clusters in Gaia DR2: 582 new open clusters ..
-Galactic disc, [Castro-Ginard et al. 2020](https://ui.adsabs.harvard.edu/abs/2020A%26A...635A..45C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/635/A45)
-
-The table contains 570 UBC clusters.
-
 ### CASTRO22
 Hunting for open clusters in Gaia EDR3: 628 new open clusters
 found with OCfinder, [Castro-Ginard et al. 2022](https://ui.adsabs.harvard.edu/abs/2022A%26A...661A.118C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/661/A118)
@@ -258,30 +287,6 @@ found with OCfinder, [Castro-Ginard et al. 2022](https://ui.adsabs.harvard.edu/a
 The table contains 628 UBC clusters numbered from UBC 1001 in order to
 differentiate them from the UBC clusters found using Gaia DR2 in the previous
 articles.
-
-### FERREIRA19
-Three new Galactic star clusters discovered in the field of
-the open cluster NGC 5999 ..., [Ferreira et al. (2019)](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483.5508F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/483/5508)
-
-The table contains 3 UFMG clusters. Added (ra, de) columns.
-
-### FERREIRA20
-Discovery and astrophysical properties of Galactic open
-clusters in dense..., [Ferreira et al. (2020)](https://ui.adsabs.harvard.edu/abs/2020MNRAS.496.2021F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/496/2021)
-
-The table contains 25 UFMG clusters. Added (ra, de) columns.
-
-### FERREIRA21
-New star clusters discovered towards the Galactic bulge
-direction using Gaia DR2, [Ferreira et al. (2021)](https://ui.adsabs.harvard.edu/abs/2021MNRAS.502L..90F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/502/L90)
-
-The table contains 34 UFMG clusters.
-
-### HE21
-A catalogue of 74 new open clusters found in Gaia Data-Release 2,
-[He et al. (2021)](https://ui.adsabs.harvard.edu/abs/2021RAA....21...93H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/other/RAA/21.93)
-
-The table contains 74 with no acronym, added 'CWNU_'. Added (ra, de) columns.
 
 ### HE22
 New Open-cluster Candidates Found in the Galactic Disk Using Gaia
@@ -303,12 +308,6 @@ The table contains 1656 with no acronym, added 'CWNU_'. Added (ra, de) columns.
 This DB lists the cluster 1951 right on the field of the NGC 5139 (Omega
 Centauri) globular cluster. No real cluster is apparent there
 
-### HAO20
-Sixteen Open Clusters Discovered with Sample-based Clustering Search of Gaia
-DR2, [Hao et al. 2020](https://ui.adsabs.harvard.edu/abs/2020PASP..132c4502H/abstract), Data from Table 2
-
-This table lists 16 clusters with no acronym. Used 'HXWHB_' to match HUNT23
-
 ### HAO22
 Newly detected open clusters in the Galactic disk using Gaia EDR3,
 [Hao et al. 2022](https://ui.adsabs.harvard.edu/abs/2022A%26A...660A...4H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/660/A4)
@@ -321,30 +320,32 @@ LISC Catalog of Star Clusters. I. Galactic Disk Clusters in Gaia EDR3,
 
 This table lists 61 'LISC_' clusters.
 
+### HUNT23
+Improving the open cluster census. II. An all-sky cluster catalogue
+with Gaia DR3, [Hunt & Reffert (2021)](https://ui.adsabs.harvard.edu/abs/2023arXiv230313424H/abstract), [Vizier]() ???
+
+The table contains 7167 clusters. This DB lists the FSR clusters as "FSR_XXX"
+with no leading zeros and the ESO clusters as "ESO_XXX-XX" with no leading
+zeroes.
+
+Added the names of the 'HSC_' clusters to the 'name_all' column that were
+missing, except for line 3400 (HSC_1995) were a cluster was already identified.
+Added the name of the NGC_2533 cluster in the "name_all" column (4587 line)
+which was also missing.
+
+Out of the 563 'Theia' moving groups listed we keep the 252 with no other
+objects listed nearby.
+
+Fixed:
+ESO 589-26,MW --> ESO 589-26 (dragged from BICA19)
+ESO_429-429 --> ESO_429-02 (according to CDS coords)
+BH --> VDBH per CDS recommendation
+
 ### QIN23
 Hunting for Neighboring Open Clusters with Gaia DR3: 101 New Open
 Clusters within 500 pc, [Qin et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJS..265...12Q/abstract), Tables provided by Qin & Chen
 
 This table lists 101 'OSCN_' clusters.
-
-### CASADO21
-New open clusters found by manual mining of data based on Gaia DR2,
-[Casado (2021)](https://ui.adsabs.harvard.edu/abs/2021RAA....21..117C/abstract), Data from Table 1 in article
-
-This table lists 20 'Casado_' clusters.
-
-### JAEHNIG21
-Membership Lists for 431 Open Clusters in Gaia DR2 Using Extreme Deconvolution
-Gaussian Mixture Models, [Jaehnig et al. 2021](https://ui.adsabs.harvard.edu/abs/2021ApJ...923..129J/abstract), Data from Table 1 in article
-
-This table lists 11 'XDOCC-' clusters. Changed 'XDOCC-0Y' to 'XDOCC-Y' to match
-HUNT23.
-
-### SANTOS21
-Canis Major OB1 stellar group contents revealed by Gaia,
-[Santos-Silva et al. 2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.508.1033S/abstract), Data from Table 1 in article
-
-This table lists 5 'CMa-' clusters.
 
 ### LI23
 LISC Catalog of Star Clusters. II. High Galactic Latitude Open Clusters in
@@ -423,7 +424,7 @@ communication:
 nowadays, we don't have a proper definition of what it means any more, outside
 of those classicaly identified.*"
 
-We thus include in our catalogue only the 1498 listed by HUNT23.
+We thus include in our catalogue only a fraction of those listed by HUNT23.
 
 
 
