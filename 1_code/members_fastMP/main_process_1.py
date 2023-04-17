@@ -9,18 +9,21 @@ import astropy.units as u
 import main_process_GDR3_query as G3Q
 import time as t
 
+# # LOCAL RUN
 # # insert at 1, 0 is the script path (or '' in REPL)
-import sys
-sys.path.insert(1, '/home/gabriel/Github/fastmp/')  # Path to fastMP
+# import sys
+# sys.path.insert(1, '/home/gabriel/Github/fastmp/')  # Path to fastMP
+# frames_path = '/media/gabriel/backup/gabriel/GaiaDR3/datafiles_G20/'
+# gaiadr3_path_full = "../../2_pipeline/3_final_DB.csv"
+
+# CLUSTER RUN
+# Path to the database with Gaia DR3 data
+frames_path = '/home/gperren/GaiaDR3/datafiles_G20/'
+# Full database of clusters (in this folder)
+gaiadr3_path_full = "3_final_DB.csv"
+
 from fastmp import fastMP
 
-# Path to the database with Gaia DR3 data
-frames_path = '/media/gabriel/backup/gabriel/GaiaDR3/datafiles_G20/'
-# frames_path = '/home/gperren/GaiaDR3/datafiles_G20/'
-
-# Full database of clusters (in this folder)
-gaiadr3_path_full = "../../2_pipeline/3_final_DB.csv"
-# gaiadr3_path_full = "3_final_DB.csv"
 # File that contains the regions delimited by each frame (in this folder)
 frames_ranges = 'frame_ranges.txt'
 
@@ -72,13 +75,14 @@ def main(N_cl_extra=5):
 
     # # Shuffle
     # clusters_list = clusters_list.sample(frac=1).reset_index(drop=True)
-    clusters_list = database_full
+    # # Full list
+    # clusters_list = database_full
 
     for index, cl in clusters_list.iterrows():
         name, dups = cl['fnames'], cl['duplicates']
 
-        if name not in ('ngc5617',):
-            continue
+        # if name not in ('ubc325',):
+        #     continue
         print(index, name, cl['GLON'], cl['GLAT'], cl['pmRA'], cl['pmDE'],
               cl['plx'])
 
@@ -86,13 +90,12 @@ def main(N_cl_extra=5):
         centers_ex = get_close_cls(
             database_full, database_full_names, close_cl_idx, name, dups)
 
-        # # Generate frame
-        # data = get_frame(frames_path, frames_data, cl)
+        # Generate frame
+        data = get_frame(frames_path, frames_data, cl)
         # # Store full file
         # data.to_csv(out_path + name + "_full.csv", index=False)
-
-        # Read from file
-        data = pd.read_csv(out_path + name + "_full.csv")
+        # # Read from file
+        # data = pd.read_csv(out_path + name + "_full.csv")
 
         # Extract center coordinates
         xy_c, vpd_c, plx_c, fixed_centers = (cl['GLON'], cl['GLAT']), None,\
@@ -113,7 +116,6 @@ def main(N_cl_extra=5):
         # Process with fastMP
         start = t.time()
         while True:
-            print(fixed_centers)
             probs_all, N_membs = fastMP(
                 xy_c=xy_c, vpd_c=vpd_c, plx_c=plx_c, centers_ex=centers_ex,
                 fixed_centers=fixed_centers).fit(X)
@@ -131,9 +133,9 @@ def main(N_cl_extra=5):
         except:
             classif = 'FFF'
 
-        print("{}: Nmembs {}, P>0.5 {}, {}; {}".format(
+        print("{}: Nmembs {}, P>0.5 {}, {}; t={}, {}".format(
               name, N_membs, (probs_all > 0.5).sum(), classif,
-              round(t.time() - start, 1)))
+              round(t.time() - start, 1), fixed_centers))
 
         # Write output
         write_out(run_ID, out_path, name, data, probs_all, N_membs, classif,
@@ -214,13 +216,18 @@ def get_close_cls(database_full, database_full_names, close_cl_idx, name, dups):
     # Indexes to the closest clusters in XY
     ex_cls_idx = close_cl_idx[1][idx][1:]
 
+    duplicate_cls = []
+    if str(dups) != 'nan':
+        duplicate_cls = dups.split(',')
+
     centers_ex = []
     for i in ex_cls_idx:
 
-        # Check if this close cluster is identified as a probable duplicate.
-        # If it is, do not add it to the list of extra clusters in the frame
-        if not np.isnan(dups):
-            if database_full_names[i] in dups.split(','):
+        # Check if this close cluster is identified as a probable duplicate
+        # of this cluster. If it is, do not add it to the list of extra
+        # clusters in the frame
+        if duplicate_cls:
+            if database_full_names[i] in duplicate_cls:
                 continue
 
         ex_cl_dict = {
@@ -239,7 +246,7 @@ def get_close_cls(database_full, database_full_names, close_cl_idx, name, dups):
             'pms': [database_full['pmRA'][i], database_full['pmDE'][i]],
             'plx': [database_full['plx'][i]]
         }
-        print(database_full['ID'][i], ex_cl_dict)
+        # print(database_full['ID'][i], ex_cl_dict)
         centers_ex.append(ex_cl_dict)
 
     return centers_ex
