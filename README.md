@@ -4,19 +4,19 @@
 <!-- MarkdownTOC -->
 
 - Databases included in cross-match
-  - BICA19
   - KHARCHENKO12
+  - CASTRO18
+  - SIM19
+    - CASTRO19
+  - BICA19
+  - LIUPANG19
   - CANTAT20
   - DIAS21
   - HUNT21
-  - HUNT23
   - TARRICQ22
-  - CASTRO18
-    - CASTRO19
+  - HUNT23
   - CASTRO20
   - CASTRO22
-  - SIM19
-  - LIUPANG19
   - FERREIRA19
   - FERREIRA20
   - FERREIRA21
@@ -78,6 +78,39 @@ TODO:
 Before combining the databases we must first sanitize them so that they
 can be read appropriately. These are the databases and the changes made to each:
 
+### KHARCHENKO12
+Global survey of star clusters in the Milky Way. I. The
+Pipeline and ...; [Kharchenko et al. 2012](https://ui.adsabs.harvard.edu/abs/2012A%26A...543A.156K), [HEASARC](https://heasarc.gsfc.nasa.gov/W3Browse/all/mwsc.html)
+
+I retrieved the data from the HEASARC service selecting all clusters with
+'class' equal to "OPEN STAR CLUSTER", resulting in 2858 entries.
+This DB lists the FSR clusters as "FSR XXXX" with leading zeros and the ESO
+clusters as "ESO XXX-XX" with leading zeroes.
+
+vdBergh-Hagen --> VDBH per CDS recommendation
+
+### CASTRO18
+A new method for unveiling open clusters in Gaia. New nearby open
+clusters confirmed by DR2, [Castro-Ginard et al. 2018](https://ui.adsabs.harvard.edu/abs/2018A%26A...618A..59C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/618/A59)
+
+The table contains 23 UBC clusters.
+
+### SIM19
+207 New Open Star Clusters within 1 kpc from Gaia Data Release,
+[Sim et al. 2019](https://ui.adsabs.harvard.edu/abs/2019JKAS...52..145S/abstract), Data taken from Table 2 in online article
+
+The table contains 207 UPK clusters. Three of these clusters were identified
+as duplicated UBC clusters IN CG20. I thus remove these 3 clusters: UPK 19
+(UBC 32), UPK 172 (UBC 10a), and UPK 327 (UBC 88); note that CGA20 mistakenly
+wrote UPK 176 instead of UPK 172. Added (ra, dec) columns and a plx column
+estimated as 1000/dist_pc
+
+#### CASTRO19
+Hunting for open clusters in Gaia DR2: the Galactic anticentre,
+[Castro-Ginard et al. 2019](https://ui.adsabs.harvard.edu/abs/2019A%26A...627A..35C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/627/A35)
+
+The table contains 53 UBC clusters.
+
 ### BICA19
 A Multi-band Catalog of 10978 Star Clusters ... in the Milky Way;
 2913 clusters (OCs); [Bica et al. 2019](https://ui.adsabs.harvard.edu/abs/2019AJ....157...12B/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=J/AJ/157/12/table3)
@@ -85,16 +118,36 @@ A Multi-band Catalog of 10978 Star Clusters ... in the Milky Way;
 The Vizier table contain 10978 entries. We keep only those with Class1 OC (open
 cluster) or OCC (open cluster candidate); this reduces the list to 3564 entries.
 This DB lists the FSR clusters as "FSR XXX" and the ESO clusters as
-"ESO XXX-XX" with no underscores or leading zeroes. I added 'RA_ICRS' and
+"ESO XXX-XX" with no leading zeroes. I added 'RA_ICRS' and
 'DE_ICRS' columns to math the rest of the DBs.
 
+The list contains 19 duplicates and one entry where the same name is listed
+twice (MWSC 2776). 
+- For the single entry with the same name listed twice, we remove one of the
+  repeated names.
+- For (FSR 523, FSR 847, FSR 436) we remove the duplicates that showed as
+  single entries
+- ESO 393-3: removed name from both entries (cluster not found in CDS)
+- MWSC 1025, 1482, 948, 3123, 1997, 1840, 442, 1808, 2204: removed name from
+  both entries (clusters not found in KHARCHENKO12)
+- ESO 97-2: removed from Loden 848 as it matches the position of Loden 894
+  according to CDS
+- FSR 972, OCL 344, Collinder 384, FSR 179: removed from both entries, it does
+  not show in CDS or anywhere else
+- MWSC 206: removed entry that also showed FSR 60 as the coordinates for FSR 60
+  are a better match in KHARCHENKO12 for the entry with the single FSR 60 name
+
 Fixed:
-"FSR 429.MWSC 3667" --> "FSR 429,MWSC 3667"
-"Carraro 1.MWSC 1829" --> "Carraro 1,MWSC 1829"
-"Cernik 39" --> "Czernik 39"
+FSR 429.MWSC 3667 --> FSR 429,MWSC 3667
+Carraro 1.MWSC 1829 --> Carraro 1,MWSC 1829
+Cernik 39 --> "Czernik 39
+FSR343 --> FSR 343
+ESO456-13 --> ESO 456-13
 de Wit 1 --> Wit 1 (to match KHARCHENKO12)
 JS 1 --> Juchert-Saloran 1 (to match KHARCHENKO12)
 ESO 589-26,MW --> ESO 589-26
+Messineo 1,Cl 1813-18,SAI 126, --> Remove comma at the end
+BH --> VDBH per CDS recommendation
 
 This is the only DB that lists the Ryu & Lee (2018) clusters. The original
 article claims to have found 721 new OCs (923 minus 202 embedded). BICA19 (page
@@ -109,16 +162,12 @@ For the Ryu clusters:
 More specifically, 902 (98%) clusters are smaller than 3′, and
 823 (89%) clusters are even smaller than 2′.* [Ryu & Lee (2018)](https://ui.adsabs.harvard.edu/abs/2018ApJ...856..152R/abstract)
 
-### KHARCHENKO12
-Global survey of star clusters in the Milky Way. I. The
-Pipeline and ...; [Kharchenko et al. 2012](https://ui.adsabs.harvard.edu/abs/2012A%26A...543A.156K), [HEASARC](https://heasarc.gsfc.nasa.gov/W3Browse/all/mwsc.html)
+### LIUPANG19
+A Catalog of Newly Identified Star Clusters in Gaia DR2,
+[Liu & Pang 2019](https://ui.adsabs.harvard.edu/abs/2019ApJS..245...32L/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/245/32)
 
-I retrieved the data from the HEASARC service selecting all clusters with
-'class' equal to "OPEN STAR CLUSTER", resulting in 2858 entries.
-This DB lists the FSR clusters as "FSR XXXX" with leading zeros and the ESO
-clusters as "ESO XXX-XX" with leading zeroes.
-
-vdBergh-Hagen --> BH ??? Are these different clusters always or not??
+The table contains 76 clusters with no acronym given. I added 'FoF_' to match
+HUNT23.
 
 ### CANTAT20
 Painting a portrait of the Galactic disc with its stellar clusters;
@@ -127,12 +176,22 @@ Painting a portrait of the Galactic disc with its stellar clusters;
 The table contains 2017 clusters. This DB lists the FSR clusters as "FSR_XXXX"
 with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
 
+BH --> VDBH per CDS recommendation
+LP_ --> FoF_ to match the original work LIUPANG19
+
 ### DIAS21
 Updated parameters of 1743 open clusters based on Gaia DR2,
 [Dias et al. 2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.504..356D), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/504/356)
 
 The table contains 1743 clusters. This DB lists the FSR clusters as "FSR_XXXX"
 with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
+
+The table lists 177 LIUPANG19 clusters because it includes clusters not
+listed as new by the authors. We remove all except those listed as new in
+LIUPANG19. Cluster 866 was duplicated so one entry was removed. Changed
+'LP_' to 'FoF_' for consistency.
+
+BH --> VDBH per CDS recommendation
 
 This DB contains wrong RA data for several clusters (differences with HAO21:
 `10>1 deg`, `14>0.5 deg`, `86>0.1 deg`)
@@ -156,6 +215,16 @@ applied to Gaia DR2 data, [Hunt & Reffert (2021)](https://ui.adsabs.harvard.edu/
 
 This table lists 41 'PHOC_' clusters.
 
+### TARRICQ22
+Structural parameters of 389 local open clusters,
+[Tarricq et al. (2022)](https://ui.adsabs.harvard.edu/abs/2022A%26A...659A..59T/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/659/A59)
+
+The table contains 467 clusters. This DB lists the FSR clusters as "FSR_XXX"
+with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
+
+BH_99 --> VDBH_99
+LP_ --> FoF_
+
 ### HUNT23
 Improving the open cluster census. II. An all-sky cluster catalogue
 with Gaia DR3, [Hunt & Reffert (2021)](https://ui.adsabs.harvard.edu/abs/2023arXiv230313424H/abstract), [Vizier]() ???
@@ -164,32 +233,17 @@ The table contains 7167 clusters. This DB lists the FSR clusters as "FSR_XXX"
 with no leading zeros and the ESO clusters as "ESO_XXX-XX" with no leading
 zeroes.
 
-Added the names of the HSC_ clusters to the 'name_all' column that were missing,
-except for line 3400 (HSC_1995) were a cluster was already identified. Added
-the name of the NGC_2533 cluster in the "name_all" column (4587 line) which
-was also missing.
+Added the names of the 'HSC_' clusters to the 'name_all' column that were
+missing, except for line 3400 (HSC_1995) were a cluster was already identified.
+Added the name of the NGC_2533 cluster in the "name_all" column (4587 line)
+which was also missing.
+
+Removed the 'Theia' moving groups.
 
 Fixed:
 ESO 589-26,MW --> ESO 589-26 (dragged from BICA19)
-
-### TARRICQ22
-Structural parameters of 389 local open clusters,
-[Tarricq et al. (2022)](https://ui.adsabs.harvard.edu/abs/2022A%26A...659A..59T/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/659/A59)
-
-The table contains 467 clusters. This DB lists the FSR clusters as "FSR_XXX"
-with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
-
-### CASTRO18
-A new method for unveiling open clusters in Gaia. New nearby open
-clusters confirmed by DR2, [Castro-Ginard et al. 2018](https://ui.adsabs.harvard.edu/abs/2018A%26A...618A..59C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/618/A59)
-
-The table contains 23 UBC clusters.
-
-#### CASTRO19
-Hunting for open clusters in Gaia DR2: the Galactic anticentre,
-[Castro-Ginard et al. 2019](https://ui.adsabs.harvard.edu/abs/2019A%26A...627A..35C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/627/A35)
-
-The table contains 53 UBC clusters.
+ESO_429-429 --> ESO_429-02 (according to CDS coords)
+BH --> VDBH per CDS recommendation
 
 ### CASTRO20
 Hunting for open clusters in Gaia DR2: 582 new open clusters ..
@@ -204,23 +258,6 @@ found with OCfinder, [Castro-Ginard et al. 2022](https://ui.adsabs.harvard.edu/a
 The table contains 628 UBC clusters numbered from UBC 1001 in order to
 differentiate them from the UBC clusters found using Gaia DR2 in the previous
 articles.
-
-### SIM19
-207 New Open Star Clusters within 1 kpc from Gaia Data Release,
-[Sim et al. 2019](https://ui.adsabs.harvard.edu/abs/2019JKAS...52..145S/abstract), Data taken from Table 2 in online article
-
-The table contains 207 UPK clusters. Three of these clusters were identified
-as duplicated UBC clusters IN CG20. I thus remove these 3 clusters: UPK 19
-(UBC 32), UPK 172 (UBC 10a), and UPK 327 (UBC 88); note that CGA20 mistakenly
-wrote UPK 176 instead of UPK 172. Added (ra, dec) columns and a plx column
-estimated as 1000/dist_pc
-
-### LIUPANG19
-A Catalog of Newly Identified Star Clusters in Gaia DR2,
-[Liu & Pang 2019](https://ui.adsabs.harvard.edu/abs/2019ApJS..245...32L/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/245/32)
-
-The table contains 76 clusters with no acronym given. I added 'FoF_' to match
-HUNT23.
 
 ### FERREIRA19
 Three new Galactic star clusters discovered in the field of
@@ -300,7 +337,8 @@ This table lists 20 'Casado_' clusters.
 Membership Lists for 431 Open Clusters in Gaia DR2 Using Extreme Deconvolution
 Gaussian Mixture Models, [Jaehnig et al. 2021](https://ui.adsabs.harvard.edu/abs/2021ApJ...923..129J/abstract), Data from Table 1 in article
 
-This table lists 11 'XDOCC-' clusters.
+This table lists 11 'XDOCC-' clusters. Changed 'XDOCC-0Y' to 'XDOCC-Y' to match
+HUNT23.
 
 ### SANTOS21
 Canis Major OB1 stellar group contents revealed by Gaia,
@@ -394,44 +432,42 @@ We thus include in our catalogue only the 1498 listed by HUNT23.
 After cross-matching the sanitized databases we have:
 
 ```
-1 BICA19 3564
-2 KHARCHENKO12 2858
-3 CANTAT20 2017
-4 DIAS21 1743
-5 HUNT21 41
-6 HUNT23 7167
-7 TARRICQ22 467
-8 CASADO21 20
-9 CASTRO18 23
-10 CASTRO19 53
-11 CASTRO20 570
-12 CASTRO22 628
-13 SIM19 204
-14 LIUPANG19 76
-15 FERREIRA19 3
-16 FERREIRA20 25
-17 FERREIRA21 34
+1 KHARCHENKO12 2858
+2 CASTRO18 23
+3 BICA19 3560
+4 CASTRO19 53
+5 SIM19 204
+6 LIUPANG19 76
+7 FERREIRA19 3
+8 CANTAT20 2017
+9 CASTRO20 570
+10 FERREIRA20 25
+11 HAO20 16
+12 DIAS21 1604
+13 CASADO21 20
+14 FERREIRA21 34
+15 HUNT21 41
+16 JAEHNIG21 11
+17 SANTOS21 5
 18 HE21 74
-19 HE22 541
-20 HE22_1 270
-21 HE22_2 1656
-22 HAO20 16
-23 HAO22 704
-24 LI22 61
-25 QIN23 101
-26 JAEHNIG21 11
-27 SANTOS21 5
+19 CASTRO22 628
+20 TARRICQ22 467
+21 LI22 61
+22 HE22 541
+23 HE22_1 270
+24 HE22_2 1656
+25 HAO22 704
+26 HUNT23 6856
+27 QIN23 101
 28 LI23 35
 29 CHI23_2 46
 30 CHI23 82
 31 CHI23_3 1179
 
-Clusters in final cross-matched catalog: 14507
+23820 clusters in all DBs
+Clusters in final cross-matched catalog: 13967
 ```
 
-There are 3059 clusters in BICA19 and KHARCHENKO12 with neither parallax nor
-proper motions data. There are 709 Ryu clusters, 117 NGC clusters, 75 VVV
-clusters, 202 MWSC clusters.
 
 
 ## Cluster definition
