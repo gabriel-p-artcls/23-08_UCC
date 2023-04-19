@@ -6,9 +6,9 @@
 - Databases included in cross-match
   - KHARCHENKO12
   - CASTRO18
+  - BICA19
   - SIM19
     - CASTRO19
-  - BICA19
   - LIUPANG19
   - FERREIRA19
   - CASTRO20
@@ -95,22 +95,6 @@ clusters confirmed by DR2, [Castro-Ginard et al. 2018](https://ui.adsabs.harvard
 
 The table contains 23 UBC clusters.
 
-### SIM19
-207 New Open Star Clusters within 1 kpc from Gaia Data Release,
-[Sim et al. 2019](https://ui.adsabs.harvard.edu/abs/2019JKAS...52..145S/abstract), Data taken from Table 2 in online article
-
-The table contains 207 UPK clusters. Three of these clusters were identified
-as duplicated UBC clusters IN CG20. I thus remove these 3 clusters: UPK 19
-(UBC 32), UPK 172 (UBC 10a), and UPK 327 (UBC 88); note that CGA20 mistakenly
-wrote UPK 176 instead of UPK 172. Added (ra, dec) columns and a plx column
-estimated as 1000/dist_pc
-
-#### CASTRO19
-Hunting for open clusters in Gaia DR2: the Galactic anticentre,
-[Castro-Ginard et al. 2019](https://ui.adsabs.harvard.edu/abs/2019A%26A...627A..35C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/627/A35)
-
-The table contains 53 UBC clusters.
-
 ### BICA19
 A Multi-band Catalog of 10978 Star Clusters ... in the Milky Way;
 2913 clusters (OCs); [Bica et al. 2019](https://ui.adsabs.harvard.edu/abs/2019AJ....157...12B/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR-3?-source=J/AJ/157/12/table3)
@@ -162,6 +146,22 @@ For the Ryu clusters:
 More specifically, 902 (98%) clusters are smaller than 3′, and
 823 (89%) clusters are even smaller than 2′.* [Ryu & Lee (2018)](https://ui.adsabs.harvard.edu/abs/2018ApJ...856..152R/abstract)
 
+### SIM19
+207 New Open Star Clusters within 1 kpc from Gaia Data Release,
+[Sim et al. 2019](https://ui.adsabs.harvard.edu/abs/2019JKAS...52..145S/abstract), Data taken from Table 2 in online article
+
+The table contains 207 UPK clusters. Three of these clusters were identified
+as duplicated UBC clusters IN CG20. I thus remove these 3 clusters: UPK 19
+(UBC 32), UPK 172 (UBC 10a), and UPK 327 (UBC 88); note that CGA20 mistakenly
+wrote UPK 176 instead of UPK 172. Added (ra, dec) columns and a plx column
+estimated as 1000/dist_pc
+
+#### CASTRO19
+Hunting for open clusters in Gaia DR2: the Galactic anticentre,
+[Castro-Ginard et al. 2019](https://ui.adsabs.harvard.edu/abs/2019A%26A...627A..35C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/627/A35)
+
+The table contains 53 UBC clusters.
+
 ### LIUPANG19
 A Catalog of Newly Identified Star Clusters in Gaia DR2,
 [Liu & Pang 2019](https://ui.adsabs.harvard.edu/abs/2019ApJS..245...32L/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/245/32)
@@ -171,7 +171,7 @@ HUNT23.
 
 ### FERREIRA19
 Three new Galactic star clusters discovered in the field of
-the open cluster NGC 5999 ..., [Ferreira et al. (2019)](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483.5508F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/483/5508)
+the open cluster NGC 5999 ..., [Ferreira et al. 2019](https://ui.adsabs.harvard.edu/abs/2019MNRAS.483.5508F/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/MNRAS/483/5508)
 
 The table contains 3 UFMG clusters. Added (ra, de) columns.
 
@@ -322,7 +322,7 @@ This table lists 61 'LISC_' clusters.
 
 ### HUNT23
 Improving the open cluster census. II. An all-sky cluster catalogue
-with Gaia DR3, [Hunt & Reffert (2021)](https://ui.adsabs.harvard.edu/abs/2023arXiv230313424H/abstract), [Vizier]() ???
+with Gaia DR3, [Hunt & Reffert (2023)](https://ui.adsabs.harvard.edu/abs/2023arXiv230313424H/abstract), [Vizier]() ???
 
 The table contains 7167 clusters. This DB lists the FSR clusters as "FSR_XXX"
 with no leading zeros and the ESO clusters as "ESO_XXX-XX" with no leading
@@ -358,7 +358,7 @@ at all. HUNT23 recovers 0% of these clusters.
 
 ### CHI23_2
 Identifying 46 New Open Cluster Candidates in Gaia EDR3 Using a Hybrid
-pyUPMASK and Random Forest Method; [Chi et al. (2023)][https://ui.adsabs.harvard.edu/abs/2023ApJS..265...20C/abstract], data taken
+pyUPMASK and Random Forest Method; [Chi et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJS..265...20C/abstract), data taken
 from Table in the article (IOP)
 
 This table lists 46 clusters with no acronym, 'CWWL_' was added to match
