@@ -20,7 +20,7 @@ def main():
     dbs['ID'] = no_dup_names
 
     fnames = assign_fname(dbs['ID'])
-    dbs['fnames'] = fnames
+    dbs['fname'] = fnames
     dup_check(fnames, dbs)
 
     ucc_ids = assign_UCC_ids(dbs['GLON'], dbs['GLAT'])
@@ -82,7 +82,9 @@ def preferred_names(names_temp):
         'pismis', 'vdbh', 'loden', 'kronberger', 'collinder', 'harvard',
         'eso', 'ascc')
 
+    # Select the first name listed
     fname = names_temp[0]
+    # Replace with another name according to the preference list
     if len(names_temp) > 1:
         for id_prefer in names_lst:
             for name in names_temp:

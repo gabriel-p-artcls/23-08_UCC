@@ -216,12 +216,7 @@ def get_unique_names(DB_names_match, DB_names_orig):
     print("Extracting unique names...")
 
     match_dict = {}
-    N_all, pp = len(all_names), 10
-
     for i, names_l in enumerate(all_names):
-        if 100 * (i / N_all) > pp:
-            print(pp, "%")
-            pp += 10
         uid = "cl" + str(i)
 
         clid_m = []
@@ -233,15 +228,15 @@ def get_unique_names(DB_names_match, DB_names_orig):
 
         if len(clid_m) == 0:
             match_dict[uid] = [[], []]
-            match_dict[uid][0] = list(set(all_names_orig[i]))
-            match_dict[uid][1] = list(set(names_l))
+            match_dict[uid][0] = list(dict.fromkeys(all_names_orig[i]))
+            match_dict[uid][1] = list(dict.fromkeys(names_l))
         elif len(clid_m) == 1:
             clid_m = clid_m[0]
             match_dict[clid_m][0] += all_names_orig[i]
             match_dict[clid_m][1] += names_l
             # Remove duplicates
-            match_dict[clid_m][0] = list(set(match_dict[clid_m][0]))
-            match_dict[clid_m][1] = list(set(match_dict[clid_m][1]))
+            match_dict[clid_m][0] = list(dict.fromkeys(match_dict[clid_m][0]))
+            match_dict[clid_m][1] = list(dict.fromkeys(match_dict[clid_m][1]))
         else:
             # Create new entry
             match_dict[uid] = [[], []]
@@ -254,8 +249,8 @@ def get_unique_names(DB_names_match, DB_names_orig):
                 # Remove old entries from dictionary
                 del match_dict[clid]
             # Remove duplicates
-            match_dict[uid][0] = list(set(match_dict[uid][0]))
-            match_dict[uid][1] = list(set(match_dict[uid][1]))
+            match_dict[uid][0] = list(dict.fromkeys(match_dict[uid][0]))
+            match_dict[uid][1] = list(dict.fromkeys(match_dict[uid][1]))
 
     unique_names, unique_names_orig = [], []
     for k, v in match_dict.items():
@@ -292,16 +287,13 @@ def get_matches(
     print("Matching databases...")
     cl_dict = {}
     # For each list of unique names
-    N_all, pp = len(unique_names), 10
     for q, cl in enumerate(unique_names):
-        if 100 * (q / N_all) > pp:
-            print(pp, "%")
-            pp += 10
 
         # For each name in list
         cl_str = ','.join(unique_names_orig[q])
         cl_dict[cl_str] = {
-            'DB': [], 'RA': [], 'DE': [], 'plx': [], 'pmra': [], 'pmde': []}
+            'DB': [], 'DB_i': [], 'RA': [], 'DE': [], 'plx': [], 'pmra': [],
+            'pmde': []}
 
         # For each DB
         for DB_ID, names_db in DB_names_match.items():
@@ -319,6 +311,7 @@ def get_matches(
                     if name in name_l:
                         db_match = True
                         cl_dict[cl_str]['DB'].append(DB_ID)
+                        cl_dict[cl_str]['DB_i'].append(i)
                         # Extract row from this DB
                         row = df.iloc[i]
                         # if DB_ID != 'DIAS21':
@@ -349,15 +342,16 @@ def combine_DBs(cl_dict, DBs_IDS):
     """
     print("Generating final data...")
 
-    db_l, names_l, ra_l, dec_l, glon_l, glat_l, plx_l, pmRA_l, pmDE_l =\
-        [[] for _ in range(9)]
+    db_l, db_i_l, names_l, ra_l, dec_l, glon_l, glat_l, plx_l, pmRA_l,\
+        pmDE_l = [[] for _ in range(10)]
     for names, v in cl_dict.items():
 
-        DBs, ra, dec, plx, pmRA, pmDE = v['DB'], v['RA'], v['DE'], v['plx'],\
-            v['pmra'], v['pmde']
+        DBs, DBs_i, ra, dec, plx, pmRA, pmDE = v['DB'], v['DB_i'], v['RA'],\
+            v['DE'], v['plx'], v['pmra'], v['pmde']
 
         in_dbs = [DBs_IDS[_] for _ in DBs]
         db_l.append("_".join(str(_) for _ in in_dbs))
+        db_i_l.append("_".join(str(_) for _ in DBs_i))
 
         names_l.append(names)
 
@@ -390,9 +384,9 @@ def combine_DBs(cl_dict, DBs_IDS):
 
     # Store combined databases
     final_DB = {
-        'DB': db_l, 'ID': names_l, 'RA_ICRS': ra_l, 'DE_ICRS': dec_l,
-        'GLON': glon_l, 'GLAT': glat_l, 'plx': plx_l, 'pmRA': pmRA_l,
-        'pmDE': pmDE_l
+        'DB': db_l, 'DB_i': db_i_l, 'ID': names_l, 'RA_ICRS': ra_l,
+        'DE_ICRS': dec_l, 'GLON': glon_l, 'GLAT': glat_l, 'plx': plx_l,
+        'pmRA': pmRA_l, 'pmDE': pmDE_l
     }
 
     return final_DB
