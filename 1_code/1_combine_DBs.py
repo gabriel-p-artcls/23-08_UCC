@@ -18,7 +18,7 @@ plx, pmRa, pmDE: "val1, val2, ..."
 
 """
 
-dbs_folder = '../0_data/databases/'
+dbs_folder = '/home/gabriel/Github/web_sites/UCC/datafiles/databases/'
 out_path = '../2_pipeline/'
 
 # Data stored per cluster (per database):
