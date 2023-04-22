@@ -16,11 +16,11 @@ def main(N_dups=10):
     # Read file data will all the clusters
     df = pd.read_csv(path_io + db_in)
 
-    dups_names, dups_fnames = dups_identify(df, N_dups)
+    dups_fnames = dups_identify(df, N_dups)
 
     # Store duplicates in final catalogue
     df['dups_fnames'] = dups_fnames
-    df['dups_names'] = dups_names
+    # df['dups_names'] = dups_names
 
     # Save to file
     df.to_csv(path_io + db_out, na_rep='nan', index=False,
@@ -43,11 +43,11 @@ def dups_identify(df, N_dups):
     dist[msk] = np.inf
 
     print(f"Finding duplicates (max={N_dups})...")
-    dups_names, dups_fnames = [], []
+    dups_fnames = []
     for i, cl in enumerate(dist):
         idx = np.argsort(cl)[:N_dups]
 
-        dups_name, dups_fname = [], []
+        dups_fname = []
         for j in idx:
             # Angular distance in arcmin (rounded)
             d = round(angular_separation(x[i], y[i], x[j], y[j]) * 60, 2)
@@ -62,20 +62,21 @@ def dups_identify(df, N_dups):
                 # print(i, df['fnames'][i], df['fnames'][j], round(d, 2),
                 #       round(pm_d, 2), round(plx_d, 2))
                 dups_fname.append(df['fname'][j])
-                dups_name.append(df['ID'][j])
+                # dups_name.append(df['ID'][j])
 
         if dups_fname:
+            if len(dups_fname) > 1:
+                print(i, df['fname'][i], len(dups_fname), dups_fname)
             dups_fname = ",".join(dups_fname)
-            dups_name = ",".join(dups_name)
-            print(i, df['fname'][i], dups_name, dups_fname)
+            # dups_name = ",".join(dups_name)
         else:
             dups_fname = 'nan'
-            dups_name = 'nan'
+            # dups_name = 'nan'
 
-        dups_names.append(dups_name)
+        # dups_names.append(dups_name)
         dups_fnames.append(dups_fname)
 
-    return dups_names, dups_fnames
+    return dups_fnames
 
 
 def duplicate_find(d, pm_d, plx_d, plx):

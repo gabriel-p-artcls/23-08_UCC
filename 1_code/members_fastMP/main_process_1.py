@@ -47,9 +47,9 @@ def main(N_cl_extra=5):
     # Generate final table
     with open(out_path + f"table_{run_ID}.csv", "w") as f:
         f.write(
-            "DB,DB_i,ID,fname,dups_fnames,dups_names,UCC_ID,"
+            "DB,DB_i,ID,fname,dups_fname,dups_names,UCC_ID,"
             + "Class,Class_v,GLON,GLAT,RA_ICRS,DE_ICRS,plx,pmRA,pmDE,RV,"
-            + "N_membs,FC\n")
+            + "N_membs\n")
 
     # Read data
     frames_data, database_full = read_input()
@@ -81,7 +81,7 @@ def main(N_cl_extra=5):
 
     for index, cl in clusters_list.iterrows():
 
-        # if cl['fnames'] not in ('ubc325',):
+        # if cl['fname'] not in ('ngc2451a',):
         #     continue
         print(index, cl['fname'], cl['GLON'], cl['GLAT'], cl['pmRA'],
               cl['pmDE'], cl['plx'])
@@ -139,8 +139,7 @@ def main(N_cl_extra=5):
               round(t.time() - start, 1), fixed_centers))
 
         # Write output
-        write_out(run_ID, out_path, cl, data, probs_all, N_membs,
-                  classif, fixed_centers)
+        write_out(run_ID, out_path, cl, data, probs_all, N_membs, classif)
         # write_out(run_ID, out_path, cl)
 
 
@@ -393,12 +392,9 @@ def check_centers(X, xy_c, vpd_c, plx_c, probs_all):
 
 # def write_out(run_ID, out_path, cl):
 def write_out(run_ID, out_path, cl, data, probs_all, N_membs, classif,
-              fixed_centers, prob_min=0.5):
+              prob_min=0.5):
     """
     """
-    fname = cl['fname']
-    name = cl['ID'].split(',')[0]
-
     data['probs'] = np.round(probs_all, 2)
     msk = probs_all > prob_min
 
@@ -411,16 +407,20 @@ def write_out(run_ID, out_path, cl, data, probs_all, N_membs, classif,
     N_membs = len(df)
 
     # Write member stars for cluster
-    df.to_csv(out_path + fname + ".csv.gz", index=False, compression='gzip')
+    df.to_csv(out_path + cl['fname'] + ".csv.gz", index=False,
+              compression='gzip')
 
-    lon, lat = np.median(df['GLON']), np.median(df['GLAT'])
+    lon, lat = np.nanmedian(df['GLON']), np.nanmedian(df['GLAT'])
+    ra, dec = np.nanmedian(df['RA_ICRS']), np.nanmedian(df['DE_ICRS'])
+    plx = np.nanmedian(df['Plx'])
+    pmRA, pmDE = np.nanmedian(df['pmRA']), np.nanmedian(df['pmDE'])
+    RV = np.nanmedian(df['RV'])
+
     lon, lat = round(lon, 4), round(lat, 4)
-    ra, dec = np.median(df['RA_ICRS']), np.median(df['DE_ICRS'])
     ra, dec = round(ra, 4), round(dec, 4)
-    plx = round(np.median(df['Plx']), 3)
-    pmRA, pmDE = np.median(df['pmRA']), np.median(df['pmDE'])
-    pmRA, pmDE = round(pmRA, 2), round(pmDE, 2)
-    RV = round(np.median(df['RV']), 2)
+    plx = round(plx, 4)
+    pmRA, pmDE = round(pmRA, 4), round(pmDE, 4)
+    RV = round(RV, 4)
 
     abcd_v = UCC_value(classif)
 
@@ -429,13 +429,14 @@ def write_out(run_ID, out_path, cl, data, probs_all, N_membs, classif,
     # N_membs = np.random.randint(25, 1000)
 
     df_row = pd.DataFrame(data={
-        "DB": [cl['DB']], "DB_i": [cl['DB_i']], "ID": [name],
-        'fname': [fname], "dups_fnames": [cl['dups_fnames']],
-        "dups_names": [cl['dups_names']], "UCC_ID": [cl['UCC_ID']],
+        "DB": [cl['DB']], "DB_i": [cl['DB_i']], "ID": [cl['ID']],
+        'fname': [cl['fname']], "dups_fnames": [cl['dups_fnames']],
+        # "dups_names": [cl['dups_names']],
+        "UCC_ID": [cl['UCC_ID']],
         'Class': classif, "Class_v": [abcd_v], 
         "GLON": [lon], "GLAT": [lat], "RA_ICRS": [ra], "DE_ICRS": [dec],
         "plx": [plx], "pmRA": [pmRA], "pmDE": [pmDE], "RV": [RV],
-        "N_membs": [N_membs], 'FC': fixed_centers})
+        "N_membs": [N_membs]})
     df_row.to_csv(out_path + f"table_{run_ID}.csv", mode='a', header=False,
                   index=False, na_rep='nan', quoting=csv.QUOTE_NONNUMERIC)
 

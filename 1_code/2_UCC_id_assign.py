@@ -19,7 +19,8 @@ def main():
     no_dup_names = rm_dup_names(dbs['ID'])
     dbs['ID'] = no_dup_names
 
-    fnames = assign_fname(dbs['ID'])
+    all_names_reorder, fnames = assign_fname(dbs['ID'])
+    dbs['ID'] = all_names_reorder
     dbs['fname'] = fnames
     dup_check(fnames, dbs)
 
@@ -34,7 +35,8 @@ def main():
 
 def rm_dup_names(all_names):
     """
-    This removes duplicates such as "NGC_2516" and "NGC 2516" 
+    This removes duplicates such as "NGC_2516" and "NGC 2516", "UBC 123" and
+    "UBC123" and "OC-4567" and "OC 4567"
     """
     no_dup_names = []
     for names in all_names:
@@ -42,8 +44,24 @@ def rm_dup_names(all_names):
         names_temp = []
         for name in names:
             name = name.strip()
+            if 'UBC' in name and 'UBC ' not in name and 'UBC_' not in name:
+                name = name.replace('UBC', 'UBC ')
+            if 'UBC_' in name:
+                name = name.replace('UBC_', 'UBC ')
+
+            if 'UFMG' in name and 'UFMG ' not in name and 'UFMG_' not in name:
+                name = name.replace('UFMG', 'UFMG ')
+
+            if 'LISC' in name and 'LISC ' not in name and 'LISC_' not in name\
+                    and 'LISC-' not in name:
+                name = name.replace('LISC', 'LISC ')
+
+            if 'OC-' in name:
+                name = name.replace('OC-', 'OC ')
+            # Removes duplicates such as "NGC_2516" and "NGC 2516" 
             name = name.replace('_', ' ')
             names_temp.append(name)
+
         # Equivalent to set() but maintains order
         no_dup_names.append(','.join(list(dict.fromkeys(names_temp))))
 
@@ -54,44 +72,66 @@ def assign_fname(all_names):
     """
     Assign names used for files and urls
     """
-    fnames = []
+    fnames, all_names_reorder = [], []
     for names in all_names:
         names = names.split(',')
-        names_temp = []
-        for name in names:
+        fnames_temp = []
+        for i, name in enumerate(names):
             name = name.strip()
             # We replace '+' with 'p' to avoid duplicating names for clusters
             # like 'Juchert J0644.8-0925' and 'Juchert_J0644.8+0925'
             name = name.lower().replace('_', '').replace(' ', '').replace(
                 '-', '').replace('.', '').replace('+', 'p')
-            names_temp.append(name)
+            fnames_temp.append(name)
 
-        fname = preferred_names(names_temp)
+        names_reorder, fname = preferred_names(names, fnames_temp)
 
+        all_names_reorder.append(",".join(names_reorder))
         fnames.append(fname)
 
-    return fnames
+    return all_names_reorder, fnames
 
 
-def preferred_names(names_temp):
+def preferred_names(names, fnames_temp):
     """
     Use naming conventions according to this list of preferred names
     """
     names_lst = (
-        'blanco', 'ngc', 'melotte', 'trumpler', 'ruprecht', 'berkeley',
-        'pismis', 'vdbh', 'loden', 'kronberger', 'collinder', 'harvard',
-        'eso', 'ascc')
+        'blanco', 'westerlund', 'ngc', 'melotte', 'trumpler', 'ruprecht',
+        'berkeley', 'pismis', 'vdbh', 'loden', 'kronberger', 'collinder',
+        'haffner', 'tombaugh', 'dolidze', 'auner', 'waterloo', 'basel',
+        'bochum', 'hogg', 'carraro', 'lynga', 'johansson', 'mamajek',
+        'platais', 'harvard', 'czernik', 'koposov', 'eso', 'ascc', 'teutsch',
+        'alessi', 'king', 'saurer', 'fsr', 'juchert', 'antalova', 'stephenson')
+
+    # Move 'MWSC to the last position'
+    if len(fnames_temp) > 1 and "mwsc" in fnames_temp[0]:
+        fnames_temp = fnames_temp[1:] + [fnames_temp[0]]
+        names = names[1:] + [names[0]]
 
     # Select the first name listed
-    fname = names_temp[0]
+    names_reorder, fname = list(names), fnames_temp[0]
+
     # Replace with another name according to the preference list
-    if len(names_temp) > 1:
-        for id_prefer in names_lst:
-            for name in names_temp:
-                if id_prefer in name:
-                    fname = name
-                    return fname
-    return fname
+    if len(fnames_temp) > 1:
+
+        id_found = False
+        for name_prefer in names_lst:
+            for i, name in enumerate(fnames_temp):
+                if name_prefer in name:
+                    id_found = True
+                    break
+            if id_found:
+                break
+
+        if id_found:
+            # Store 'fname' and reorder 'names'
+            fname = fnames_temp[i]
+            name0 = names_reorder[i]
+            del names_reorder[i]
+            names_reorder = [name0] + names_reorder
+
+    return names_reorder, fname
 
 
 def assign_UCC_ids(glon, glat):
