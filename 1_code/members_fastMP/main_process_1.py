@@ -371,7 +371,9 @@ def check_centers(X, xy_c, vpd_c, plx_c, probs_all):
             return break_flag
 
     if plx_c is not None:
-        if plx_c > 2:
+        if plx_c >= 4:
+            plx_max = 0.5
+        elif plx_c < 4 and plx_c > 2:
             plx_max = 0.2
         elif plx_c > 1 and plx_c < 2:
             plx_max = 0.1
@@ -424,16 +426,10 @@ def write_out(run_ID, out_path, cl, data, probs_all, N_membs, classif,
 
     abcd_v = UCC_value(classif)
 
-    # classif, abcd_v, fixed_centers = 'DDD', 0., False
-    # lon, lat, ra, dec, plx, pmRA, pmDE, RV = np.random.rand(8)
-    # N_membs = np.random.randint(25, 1000)
-
     df_row = pd.DataFrame(data={
         "DB": [cl['DB']], "DB_i": [cl['DB_i']], "ID": [cl['ID']],
         'fname': [cl['fname']], "dups_fnames": [cl['dups_fnames']],
-        # "dups_names": [cl['dups_names']],
-        "UCC_ID": [cl['UCC_ID']],
-        'Class': classif, "Class_v": [abcd_v], 
+        "UCC_ID": [cl['UCC_ID']], 'Class': classif, "Class_v": [abcd_v], 
         "GLON": [lon], "GLAT": [lat], "RA_ICRS": [ra], "DE_ICRS": [dec],
         "plx": [plx], "pmRA": [pmRA], "pmDE": [pmDE], "RV": [RV],
         "N_membs": [N_membs]})
