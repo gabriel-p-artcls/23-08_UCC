@@ -265,7 +265,7 @@ def get_classif(
     if msk_membs.sum() < N_membs_min:
         return 'DDD'
 
-    xy_c = np.median([lon[msk_membs], lat[msk_membs]], 1)
+    xy_c = np.nanmedian([lon[msk_membs], lat[msk_membs]], 1)
     xy = np.array([lon[msk_membs], lat[msk_membs]]).T
     xy_rads = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
     xy_rad = np.percentile(xy_rads, 95)
@@ -285,34 +285,34 @@ def get_classif(
     lon_m, lat_m, pmRA_m, pmDE_m, plx_m = lon[msk_membs], lat[msk_membs],\
         pmRA[msk_membs], pmDE[msk_membs], plx[msk_membs]
 
-    xy_c = np.median([lon_m, lat_m], 1)
-    vpd_c = np.median([pmRA_m, pmDE_m], 1)
-    plx_c = np.median(plx_m)
+    xy_c = np.nanmedian([lon_m, lat_m], 1)
+    vpd_c = np.nanmedian([pmRA_m, pmDE_m], 1)
+    plx_c = np.nanmedian(plx_m)
 
     # Median distances to centers for members
     xy = np.array([lon_m, lat_m]).T
-    xy_rads = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
-    xy_05 = np.median(xy_rads)
+    xy_dists = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
+    xy_50 = np.nanmedian(xy_dists)
     pm = np.array([pmRA_m, pmDE_m]).T
-    pm_rads = spatial.distance.cdist(pm, np.array([vpd_c])).T[0]
-    pm_05 = np.median(pm_rads)
-    plx_rad = abs(plx_m - plx_c)
-    plx_05 = np.median(plx_rad)
+    pm_dists = spatial.distance.cdist(pm, np.array([vpd_c])).T[0]
+    pm_50 = np.nanmedian(pm_dists)
+    plx_dists = abs(plx_m - plx_c)
+    plx_50 = np.nanmedian(plx_dists)
     # Count member stars within median distances
-    N_memb_xy = (xy_rads < xy_05).sum()
-    N_memb_pm = (pm_rads < pm_05).sum()
-    N_memb_plx = (plx_rad < plx_05).sum()
+    N_memb_xy = (xy_dists < xy_50).sum()
+    N_memb_pm = (pm_dists < pm_50).sum()
+    N_memb_plx = (plx_dists < plx_50).sum()
 
     # Median distances to centers for field stars
     xy = np.array([lon[~msk_membs], lat[~msk_membs]]).T
-    xy_rads_f = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
+    xy_dists_f = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
     pm = np.array([pmRA[~msk_membs], pmDE[~msk_membs]]).T
-    pm_rads_f = spatial.distance.cdist(pm, np.array([vpd_c])).T[0]
-    plx_rad_f = abs(plx[~msk_membs] - plx_c)
+    pm_dists_f = spatial.distance.cdist(pm, np.array([vpd_c])).T[0]
+    plx_dists_f = abs(plx[~msk_membs] - plx_c)
     # Count field stars within median distances
-    N_field_xy = (xy_rads_f < xy_05).sum()
-    N_field_pm = (pm_rads_f < pm_05).sum()
-    N_field_plx = (plx_rad_f < plx_05).sum()
+    N_field_xy = (xy_dists_f < xy_50).sum()
+    N_field_pm = (pm_dists_f < pm_50).sum()
+    N_field_plx = (plx_dists_f < plx_50).sum()
 
     def ABCD_classif(Nm, Nf):
         """Obtain 'ABCD' classification"""
