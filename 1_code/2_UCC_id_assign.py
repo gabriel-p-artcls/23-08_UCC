@@ -40,7 +40,7 @@ def rm_dup_names(all_names):
     """
     no_dup_names = []
     for names in all_names:
-        names = names.split(',')
+        names = names.split(';')
         names_temp = []
         for name in names:
             name = name.strip()
@@ -63,7 +63,7 @@ def rm_dup_names(all_names):
             names_temp.append(name)
 
         # Equivalent to set() but maintains order
-        no_dup_names.append(','.join(list(dict.fromkeys(names_temp))))
+        no_dup_names.append(';'.join(list(dict.fromkeys(names_temp))))
 
     return no_dup_names
 
@@ -74,7 +74,7 @@ def assign_fname(all_names):
     """
     fnames, all_names_reorder = [], []
     for names in all_names:
-        names = names.split(',')
+        names = names.split(';')
         fnames_temp = []
         for i, name in enumerate(names):
             name = name.strip()
@@ -86,7 +86,7 @@ def assign_fname(all_names):
 
         names_reorder, fname = preferred_names(names, fnames_temp)
 
-        all_names_reorder.append(",".join(names_reorder))
+        all_names_reorder.append(";".join(names_reorder))
         fnames.append(fname)
 
     return all_names_reorder, fnames
