@@ -1,93 +1,24 @@
 
 import numpy as np
+import json
+import csv
 import pandas as pd
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
 """
 Script used to combine all the  databases using the clusters' names
-
-Output (row example):
-
-UCC_ID: UCC GXXX.X-YY.Y
-DBs: "1469"
-name: cluster
-all_names: "name1, name2, etc"
-ra, dec, glon, glat: "val1, val2, ..."
-plx, pmRa, pmDE: "val1, val2, ..."
-
 """
 
-dbs_folder = '/home/gabriel/Github/web_sites/UCC/datafiles/databases/'
+dbs_folder = '/home/gabriel/Github/web_sites/UCC/datafiles/'
+DBs_json = "all_dbs.json"
 out_path = '../2_pipeline/'
-
-# Data stored per cluster (per database):
-# Name(s), RA, DEC, plx, pmRA, pmDE
-
-dbs_used = {
-    'KHARCHENKO12': ['name', 'ra', 'dec', None, 'pm_ra', 'pm_dec'],
-    'CASTRO18': ["Cluster", "_RA.icrs", "_DE.icrs", "Plx", "pmRA*", "pmDE"],
-    'BICA19': ['Name', 'RA_ICRS', 'DE_ICRS', None, None, None],
-    'CASTRO19': ["Cluster", "RA_ICRS", "DE_ICRS", "Plx", "pmRA*", "pmDE"],
-    'SIM19': ["ID", "RA_ICRS", "DE_ICRS", "plx", "pmRA*", "pmDE"],
-    'LIUPANG19': ["ID", "_RA.icrs", "_DE.icrs", "plx", "pmRA", "pmDE"],
-    'FERREIRA19': ["Name", "RA_ICRS", "DE_ICRS", None, "pmRA*", "pmDE"],
-    'CANTAT20': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA*", "pmDE"],
-    'CASTRO20': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
-    'FERREIRA20': ["Name", "RA_ICRS", "DE_ICRS", "plxcl", "pmRAcl", "pmDEcl"],
-    'HAO20': ["Name", "ra", "dec", 'plx', "pmra", "pmde"],
-    'DIAS21': ['Cluster', 'RA_ICRS', 'DE_ICRS', 'Plx', 'pmRA', 'pmDE'],
-    'CASADO21': ["Name", "RA_ICRS", "DE_ICRS", "plx", "pmra", "pmde"],
-    'FERREIRA21': ["Name", "RAJ2000", "DEJ2000", "plx", "pmRA", "pmDE"],
-    'HUNT21': ['Name', 'RA_ICRS', 'DE_ICRS', 'plx', 'pmRA', 'pmDE'],
-    'JAEHNIG21': ["Name", "ra", "dec", 'plx', "pmra", "pmde"],
-    'SANTOS21': ["Name", "ra", "dec", 'plx', "pmra", "pmde"],
-    'HE21': ["OC", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
-    'CASTRO22': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
-    'TARRICQ22': ["Cluster", "RA_ICRS", "DE_ICRS", "plx", "pmRA", "pmDE"],
-    'LI22': ["id", "ra", "dec", 'plx', "pmRA", "pmDE"],
-    'HE22': ["Cluster", "_RA.icrs", "_DE.icrs", "Plx", "pmRA", "pmDE"],
-    'HE22_1': ["Cluster", "_RA.icrs", "_DE.icrs", "plx", "pmRA", "pmDE"],
-    'HE22_2': ["CWNU_id", "RA_ICRS", "DE_ICRS", "plx", "pmx", "pmy"],
-    'HAO22': ["Cluster", "RA_ICRS", "DE_ICRS", 'plx', "pmRA", "pmDE"],
-    'HUNT23': ['name', 'ra', 'dec', 'parallax', 'pmra', 'pmdec'],
-    'QIN23': ["Name", "RAdeg", "DEdeg", 'plx', "pmRA", "pmDE"],
-    'LI23': ["id", "ra", "dec", 'plx', "pmra", "pmdec"],
-    'CHI23_2': ["Name", "ra", "dec", 'plx', 'pmra', "pmde"],
-    'CHI23': ["name", "RA_ICRS", "DE_ICRS", 'plx', 'pmra', "pmdec"],
-    'CHI23_3': ["Id", "ra", "dec", 'plx', 'pmra', "pmdec"],
-}
-
-DBs_IDS = {
-    'KHARCHENKO12': 1, 'CASTRO18': 2, 'BICA19': 3, 'CASTRO19': 4, 'SIM19': 5,
-    'LIUPANG19': 6, 'FERREIRA19': 7, 'CANTAT20': 8, 'CASTRO20': 9,
-    'FERREIRA20': 10, 'HAO20': 11, 'DIAS21': 12, 'CASADO21': 13,
-    'FERREIRA21': 14, 'HUNT21': 15, 'JAEHNIG21': 16, 'SANTOS21': 17,
-    'HE21': 18, 'CASTRO22': 19, 'TARRICQ22': 20, 'LI22': 21, 'HE22': 22,
-    'HE22_1': 23, 'HE22_2': 24, 'HAO22': 25, 'HUNT23': 26, 'QIN23': 27,
-    'LI23': 28, 'CHI23_2': 29, 'CHI23': 30, 'CHI23_3': 31,
-}
 
 
 def main():
     """
     """
-    # data = pd.read_csv(dbs_folder + 'CHI23' + ".csv", index_col=False)
-    # ra, dec = lonlat2radec(data['l'].values, data['b'].values)
-    # data['RA_ICRS'], data['DE_ICRS'] = ra, dec
-    # # data['plx'] = 1000. / data['dist_pc'].values
-    # data.to_csv(dbs_folder+'CHI23_3.csv', index=False)
-    # breakpoint()
-
-    # # # np.random.seed(12345)
-    # keys = list(dbs_used.keys())
-    # np.random.shuffle(keys)
-    # dbs_used2 = {}
-    # for k in keys:
-    #     dbs_used2[k] = dbs_used[k]
-
-    DB_data, DB_names_match, DB_names_orig = get_data_and_names(
-        dbs_used, DBs_IDS)
+    dbs_used, DB_data, DB_names_match, DB_names_orig = get_data_and_names()
 
     unique_names, unique_names_orig = get_unique_names(
         DB_names_match, DB_names_orig)
@@ -95,16 +26,17 @@ def main():
     cl_dict = get_matches(
         dbs_used, DB_data, DB_names_match, unique_names, unique_names_orig)
 
-    final_DB = combine_DBs(cl_dict, DBs_IDS)
+    final_DB = combine_DBs(cl_dict)
 
     print("Writing to file...")
     pd.DataFrame(final_DB).to_csv(
-        out_path + '1_combined_DBs.csv', na_rep='nan', index=False)
+        out_path + '1_combined_DBs.csv', na_rep='nan', index=False,
+        quoting=csv.QUOTE_NONNUMERIC)
     
     print("Combined database written to file")
 
 
-def get_data_and_names(dbs_used, DBs_IDS):
+def get_data_and_names():
     """
     1. For each DB extract and store all its data --> DB_data
     2. For each cluster in each DB extract and standardize its
@@ -112,17 +44,21 @@ def get_data_and_names(dbs_used, DBs_IDS):
     3. For each cluster in each DB extract its original unedited
        name(s) --> DB_names_orig
     """
+    with open(dbs_folder + DBs_json) as f:
+        dbs_used = json.load(f)
+
     DB_data, DB_names_match, DB_names_orig, N_all = {}, {}, {}, 0
     for DB, _ in dbs_used.items():
         # Load DB data
-        data = pd.read_csv(dbs_folder + DB + ".csv", index_col=False)
-        print(DBs_IDS[DB], DB, len(data))
+        data = pd.read_csv(
+            dbs_folder + "databases/" + DB + ".csv", index_col=False)
+        print(DB, len(data))
         N_all += len(data)
         # Store in dictionary
         DB_data[DB] = data
 
         # Extract and standardize all names
-        names_all = data[dbs_used[DB][0]]
+        names_all = data[dbs_used[DB]['names']]
         names_final, names_orig = [], []
         for i, names in enumerate(names_all):
             names_l, names_l_orig = [], []
@@ -143,7 +79,7 @@ def get_data_and_names(dbs_used, DBs_IDS):
 
     print(f"\n{N_all} clusters in all DBs")
 
-    return DB_data, DB_names_match, DB_names_orig
+    return dbs_used, DB_data, DB_names_match, DB_names_orig
 
 
 def cluster_rename(name):
@@ -290,15 +226,21 @@ def get_matches(
     for q, cl in enumerate(unique_names):
 
         # For each name in list
-        cl_str = ','.join(unique_names_orig[q])
+        cl_str = ';'.join(unique_names_orig[q])
         cl_dict[cl_str] = {
             'DB': [], 'DB_i': [], 'RA': [], 'DE': [], 'plx': [], 'pmra': [],
             'pmde': []}
 
         # For each DB
         for DB_ID, names_db in DB_names_match.items():
-            df, cols = DB_data[DB_ID], dbs_used[DB_ID]
-            ra, de, plx, pmra, pmde = cols[1:]
+            df = DB_data[DB_ID]
+            cols = []
+            for v in dbs_used[DB_ID]['pos'].split(','):
+                if str(v) == 'None':
+                    v = None
+                cols.append(v)
+            # Remove Rv column
+            ra, de, plx, pmra, pmde = cols[:-1]
 
             # For each name in this list of unique names
             for name in cl:
@@ -336,7 +278,7 @@ def get_matches(
     return cl_dict
 
 
-def combine_DBs(cl_dict, DBs_IDS):
+def combine_DBs(cl_dict):
     """
     Store unique values for each cluster
     """
@@ -349,9 +291,9 @@ def combine_DBs(cl_dict, DBs_IDS):
         DBs, DBs_i, ra, dec, plx, pmRA, pmDE = v['DB'], v['DB_i'], v['RA'],\
             v['DE'], v['plx'], v['pmra'], v['pmde']
 
-        in_dbs = [DBs_IDS[_] for _ in DBs]
-        db_l.append("_".join(str(_) for _ in in_dbs))
-        db_i_l.append("_".join(str(_) for _ in DBs_i))
+        # Store DBs and the indexes in them where the cluster is located
+        db_l.append(";".join(str(_) for _ in DBs))
+        db_i_l.append(";".join(str(_) for _ in DBs_i))
 
         names_l.append(names)
 
