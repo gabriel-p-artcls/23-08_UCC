@@ -59,21 +59,14 @@ def dups_identify(df, N_dups):
             dup_flag = duplicate_find(d, pm_d, plx_d, plx[i])
 
             if dup_flag:
-                # print(i, df['fnames'][i], df['fnames'][j], round(d, 2),
-                #       round(pm_d, 2), round(plx_d, 2))
                 dups_fname.append(df['fname'][j])
-                # dups_name.append(df['ID'][j])
 
         if dups_fname:
-            if len(dups_fname) > 1:
-                print(i, df['fname'][i], len(dups_fname), dups_fname)
-            dups_fname = ",".join(dups_fname)
-            # dups_name = ",".join(dups_name)
+            print(i, df['fname'][i], len(dups_fname), dups_fname)
+            dups_fname = ";".join(dups_fname)
         else:
             dups_fname = 'nan'
-            # dups_name = 'nan'
 
-        # dups_names.append(dups_name)
         dups_fnames.append(dups_fname)
 
     return dups_fnames
