@@ -8,11 +8,14 @@ Print/plot data on the CG20 clusters.
 """
 
 # CG2020
-path0 = "../0_data/cantat_gaudin_et_al_2020/CG_2020_members.csv"
+path0 = "../0_data/CG_2020_members.csv.gz"
 data_CG = pd.read_csv(path0)
+# data_all_cls = pd.read_csv("/home/gabriel/Github/web_sites/UCC/datafiles/databases/CANTAT20.csv")
+
+
 def main():
     # func1()
-    func2('Kronberger_4')
+    func2('FSR_0158')
 
 
 def func1():
@@ -63,8 +66,7 @@ def func1():
 
 
 def func2(cl="NGC_6791"):
-    data_all_cls = pd.read_csv("../0_data/cantat_gaudin_et_al_2020/cg2020.csv")
-    msk = data_all_cls['Name'] == cl
+    # msk = data_all_cls['Name'] == cl
     # pd.set_option('display.max_columns', None)
     # print(data_all_cls[msk])
     msk = data_CG['Cluster'] == cl

@@ -6,7 +6,8 @@ import pandas as pd
 
 clpath = "/home/gabriel/Descargas/out_1/"
 final_dbs_path = "../2_pipeline/3_final_DB.csv"
-hunt23_DB_path = "../0_data/databases/HUNT23.csv"
+hunt23_DB_path = "/home/gabriel/Github/web_sites/UCC/datafiles/databases/HUNT23.csv"
+hunt23_membs_path = "../0_data/hunt23_members.csv.gz"
 
 # import os
 # files = os.listdir(clpath)
@@ -19,18 +20,20 @@ hunt23_DB_path = "../0_data/databases/HUNT23.csv"
 def main():
     """
     """
+    # Read HUNT23 members data
+    print("Reading HUNT23 members...")
+    hunt23_membs = pd.read_csv(hunt23_membs_path)
+    hunt23_ids = hunt23_membs['source_id']
+    hunt23_names = hunt23_membs['name']
+    hunt23_mag = hunt23_membs['phot_g_mean_mag']
+
+    cluster_plot(hunt23_membs, "Blanco_1", "")
+    breakpoint()
 
     final_db = pd.read_csv(final_dbs_path)
     hunt23_DB = pd.read_csv(hunt23_DB_path)
     hunt23_DB_names = [_.replace('_', '').replace(' ', '').replace(
         '-', '').lower() for _ in hunt23_DB['name']]
-
-    # Read HUNT23 members data
-    print("Reading HUNT23 members...")
-    hunt23_membs = pd.read_csv("../0_data/hunt23_members.csv.gz")
-    hunt23_ids = hunt23_membs['source_id']
-    hunt23_names = hunt23_membs['name']
-    hunt23_mag = hunt23_membs['phot_g_mean_mag']
 
     print("Processing clusters...")
     ours_hist, hunt23_hist, match_hist = [np.zeros(14) for _ in range(3)]
@@ -100,7 +103,7 @@ def main():
     breakpoint()
 
 
-def plot(df, clname1, clname2):
+def cluster_plot(df, clname1, clname2):
     """
     """
     msk1 = df['name'] == clname1
