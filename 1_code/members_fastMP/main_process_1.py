@@ -1,5 +1,6 @@
 
 import os
+from astropy.coordinates import angular_separation
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -40,16 +41,16 @@ Path(f"out_{run_ID}").mkdir(parents=True, exist_ok=True)
 out_path = f"out_{run_ID}/"
 
 
-def main(N_cl_extra=5):
+def main(N_cl_extra=10):
     """
     N_cl_extra: number of extra clusters in frame to detect
     """
     # Generate final table
     with open(out_path + f"table_{run_ID}.csv", "w") as f:
         f.write(
-            "DB,DB_i,ID,fname,dups_fname,dups_names,UCC_ID,"
+            "DB,DB_i,ID,fname,dups_fnames,UCC_ID,"
             + "Class,Class_v,GLON,GLAT,RA_ICRS,DE_ICRS,plx,pmRA,pmDE,RV,"
-            + "N_membs\n")
+            + "N_membs,bad_cents\n")
 
     # Read data
     frames_data, database_full = read_input()
@@ -74,17 +75,17 @@ def main(N_cl_extra=5):
     elif run_ID == '5':
         clusters_list = database_full[4*N_r:]
 
-    # # Full list
+    # # # Full list
     # clusters_list = database_full
     # # Shuffle
     # clusters_list = clusters_list.sample(frac=1).reset_index(drop=True)
 
     for index, cl in clusters_list.iterrows():
 
-        # if cl['fname'] not in ('ngc2451a',):
+        # if cl['fname'] not in ('blanco1',):
         #     continue
-        print(index, cl['fname'], cl['GLON'], cl['GLAT'], cl['pmRA'],
-              cl['pmDE'], cl['plx'])
+        print("\n" + str(index), cl['fname'], cl['GLON'], cl['GLAT'],
+              cl['pmRA'], cl['pmDE'], cl['plx'])
 
         # Get close clusters coords
         centers_ex = get_close_cls(
@@ -93,18 +94,19 @@ def main(N_cl_extra=5):
 
         # Generate frame
         data = get_frame(frames_path, frames_data, cl)
-        # # Store full file
+        # Store full file
         # data.to_csv(out_path + cl['fname'] + "_full.csv", index=False)
-        # # Read from file
+        # Read from file
         # data = pd.read_csv(out_path + cl['fname'] + "_full.csv")
 
         # Extract center coordinates
-        xy_c, vpd_c, plx_c, fixed_centers = (cl['GLON'], cl['GLAT']), None,\
-            None, False
+        xy_c, vpd_c, plx_c = (cl['GLON'], cl['GLAT']), None, None
         if not np.isnan(cl['pmRA']):
             vpd_c = (cl['pmRA'], cl['pmDE'])
         if not np.isnan(cl['plx']):
             plx_c = cl['plx']
+
+        fixed_centers = False
         if vpd_c is None and plx_c is None:
             fixed_centers = True
 
@@ -117,30 +119,32 @@ def main(N_cl_extra=5):
         # Process with fastMP
         start = t.time()
         while True:
+            print("Fixed centers?:", fixed_centers)
             probs_all, N_membs = fastMP(
                 xy_c=xy_c, vpd_c=vpd_c, plx_c=plx_c, centers_ex=centers_ex,
                 fixed_centers=fixed_centers).fit(X)
 
-            break_flaf = check_centers(X, xy_c, vpd_c, plx_c, probs_all)
+            bad_center = check_centers(X, xy_c, vpd_c, plx_c, probs_all)
 
-            if break_flaf is True or fixed_centers is True:
+            if bad_center == '000' or fixed_centers is True:
                 break
             else:
                 # print("Re-run with fixed_centers = True")
                 fixed_centers = True
 
-        try:
-            classif = get_classif(X[0], X[1], X[2], X[3], X[4], probs_all)
-        except:
-            classif = 'FFF'
+        classif = get_classif(X[0], X[1], X[2], X[3], X[4], probs_all)
+        abcd_v = UCC_value(classif)
 
-        print("{}: Nmembs {}, P>0.5 {}, {}; t={}, {}".format(
+        df = extract_members(data, probs_all, N_membs)
+        bad_center = check_centers(df, xy_c, vpd_c, plx_c)
+
+        print("{}: Nmembs={}, P>0.5={}, Class={}, t={}, cents={}".format(
               cl['fname'], N_membs, (probs_all > 0.5).sum(), classif,
-              round(t.time() - start, 1), fixed_centers))
+              round(t.time() - start, 1), bad_center))
 
         # Write output
-        write_out(run_ID, out_path, cl, data, probs_all, N_membs, classif)
-        # write_out(run_ID, out_path, cl)
+        write_out(run_ID, out_path, cl, df, probs_all, classif, abcd_v,
+                  bad_center)
 
 
 def read_input():
@@ -233,21 +237,13 @@ def get_close_cls(database_full, database_fnames, close_cl_idx, fname, dups):
 
         ex_cl_dict = {
             'xy': [database_full['GLON'][i], database_full['GLAT'][i]]}
+
         if not np.isnan(database_full['pmRA'][i]):
             ex_cl_dict['pms'] = [
                 database_full['pmRA'][i], database_full['pmDE'][i]]
         if not np.isnan(database_full['plx'][i]):
             ex_cl_dict['plx'] = [database_full['plx'][i]]
 
-        if np.isnan(database_full['pmRA'][i]) or\
-                np.isnan(database_full['plx'][i]):
-            continue
-        ex_cl_dict = {
-            'xy': [database_full['GLON'][i], database_full['GLAT'][i]],
-            'pms': [database_full['pmRA'][i], database_full['pmDE'][i]],
-            'plx': [database_full['plx'][i]]
-        }
-        # print(database_full['ID'][i], ex_cl_dict)
         centers_ex.append(ex_cl_dict)
 
     return centers_ex
@@ -340,61 +336,81 @@ def get_classif(
     return classif
 
 
-def check_centers(X, xy_c, vpd_c, plx_c, probs_all):
+def check_centers(X, xy_c, vpd_c, plx_c, probs_all=None, N_membs_min=25):
     """
     """
-    msk = probs_all > 0.5
-    lon, lat, pmRA, pmDE, plx = X[:5, msk]
+    if probs_all is None:
+        lon, lat, pmRA, pmDE, plx = X['GLON'].values, X['GLAT'].values,\
+            X['pmRA'].values, X['pmDE'].values, X['Plx'].values
+    else:
+        msk = probs_all > 0.7
+        if msk.sum() < N_membs_min:
+            msk = probs_all > 0.5
+        if msk.sum() < N_membs_min:
+            msk = probs_all > 0.25
+        if msk.sum() < N_membs_min:
+            msk = probs_all >= 0
+        lon, lat, pmRA, pmDE, plx = X[:5, msk]
+    # Centers of selected members
+    xy_c_f = np.nanmedian([lon, lat], 1)
+    vpd_c_f = np.nanmedian([pmRA, pmDE], 1)
+    plx_c_f = np.nanmedian(plx)
 
-    xy_c_f = np.median([lon, lat], 1)
-    vpd_c_f = np.median([pmRA, pmDE], 1)
-    plx_c_f = np.median(plx)
-
-    break_flag = True
+    bad_center_xy, bad_center_pm, bad_center_plx = '0', '0', '0'
 
     # 5 arcmin maximum
-    x_d, y_d = abs(xy_c_f - xy_c) / 60
-    if x_d > 5 or y_d > 5:
-        break_flag = False
-        # print("xy: {:.1f} {:.1f}".format(x_d, y_d))
+    # x_d, y_d = abs(xy_c_f - xy_c) / 60
+    d_arcmin = angular_separation(xy_c_f[0], xy_c_f[1], xy_c[0], xy_c[1]) * 60
+    if d_arcmin > 5:
+        # print("d_arcmin: {:.1f}".format(d_arcmin))
         # print(xy_c, xy_c_f)
-        return break_flag
+        bad_center_xy = '1'
 
-    # 5% relative difference maximum
-    pm_max = 5
+    # Relative difference
     if vpd_c is not None:
-        pmra_p, pmde_p = 100 * (vpd_c_f - vpd_c) / vpd_c
-        if abs(pmra_p) > pm_max or abs(pmde_p) > pm_max:
+        pm_max = []
+        for vpd_c_i in abs(np.array(vpd_c)):
+            if vpd_c_i > 10:
+                pm_max.append(20)
+            elif vpd_c_i > 1:
+                pm_max.append(25)
+            elif vpd_c_i > 0.1:
+                pm_max.append(35)
+            elif vpd_c_i > 0.01:
+                pm_max.append(50)
+            else:
+                pm_max.append(70)
+        pmra_p = 100 * abs(vpd_c_f[0] - vpd_c[0]) / (vpd_c[0] + 0.001)
+        pmde_p = 100 * abs(vpd_c_f[1] - vpd_c[1]) / (vpd_c[1] + 0.001)
+        if pmra_p > pm_max[0] or pmde_p > pm_max[1]:
             # print("pm: {:.2f} {:.2f}".format(pmra_p, pmde_p))
             # print(vpd_c, vpd_c_f)
-            break_flag = False
-            return break_flag
+            bad_center_pm = '1'
 
+    # Relative difference
     if plx_c is not None:
-        if plx_c >= 4:
-            plx_max = 0.5
-        elif plx_c < 4 and plx_c > 2:
-            plx_max = 0.2
-        elif plx_c > 1 and plx_c < 2:
-            plx_max = 0.1
-        elif plx_c > 0.5 and plx_c < 1:
-            plx_max = 0.05
-        elif plx_c > 0.1 and plx_c < 0.5:
-            plx_max = 0.01
+        if plx_c > 0.2:
+            plx_max = 25
+        elif plx_c > 0.1:
+            plx_max = 30
+        elif plx_c > 0.05:
+            plx_max = 35
+        elif plx_c > 0.01:
+            plx_max = 50
         else:
-            plx_max = 0.005
-        plx_p = abs(plx_c_f - plx_c)
+            plx_max = 70
+        plx_p = 100 * abs(plx_c_f - plx_c) / (plx_c + 0.001)
         if abs(plx_p) > plx_max:
             # print("plx: {:.2f}".format(plx_p))
             # print(plx_c, plx_c_f)
-            break_flag = False
-            return break_flag
+            bad_center_plx = '1'
 
-    return break_flag
+    bad_center = bad_center_xy + bad_center_pm + bad_center_plx
 
-# def write_out(run_ID, out_path, cl):
-def write_out(run_ID, out_path, cl, data, probs_all, N_membs, classif,
-              prob_min=0.5):
+    return bad_center
+
+
+def extract_members(data, probs_all, N_membs, prob_min=0.5):
     """
     """
     data['probs'] = np.round(probs_all, 2)
@@ -406,8 +422,14 @@ def write_out(run_ID, out_path, cl, data, probs_all, N_membs, classif,
         msk[idx] = True
 
     df = data[msk]
-    N_membs = len(df)
+    return df
 
+
+def write_out(
+    run_ID, out_path, cl, df, probs_all, classif, abcd_v, bad_center_count
+):
+    """
+    """
     # Write member stars for cluster
     df.to_csv(out_path + cl['fname'] + ".csv.gz", index=False,
               compression='gzip')
@@ -416,15 +438,13 @@ def write_out(run_ID, out_path, cl, data, probs_all, N_membs, classif,
     ra, dec = np.nanmedian(df['RA_ICRS']), np.nanmedian(df['DE_ICRS'])
     plx = np.nanmedian(df['Plx'])
     pmRA, pmDE = np.nanmedian(df['pmRA']), np.nanmedian(df['pmDE'])
-    RV = np.nanmedian(df['RV'])
-
+    nan_c = np.isnan(df['RV'].values).sum()
+    RV = [np.nan if nan_c > 0 else np.nanmedian(df['RV'])][0]
     lon, lat = round(lon, 4), round(lat, 4)
     ra, dec = round(ra, 4), round(dec, 4)
     plx = round(plx, 4)
     pmRA, pmDE = round(pmRA, 4), round(pmDE, 4)
     RV = round(RV, 4)
-
-    abcd_v = UCC_value(classif)
 
     df_row = pd.DataFrame(data={
         "DB": [cl['DB']], "DB_i": [cl['DB_i']], "ID": [cl['ID']],
@@ -432,7 +452,7 @@ def write_out(run_ID, out_path, cl, data, probs_all, N_membs, classif,
         "UCC_ID": [cl['UCC_ID']], 'Class': classif, "Class_v": [abcd_v], 
         "GLON": [lon], "GLAT": [lat], "RA_ICRS": [ra], "DE_ICRS": [dec],
         "plx": [plx], "pmRA": [pmRA], "pmDE": [pmDE], "RV": [RV],
-        "N_membs": [N_membs]})
+        "N_membs": [len(df)], "bad_cents": [bad_center_count]})
     df_row.to_csv(out_path + f"table_{run_ID}.csv", mode='a', header=False,
                   index=False, na_rep='nan', quoting=csv.QUOTE_NONNUMERIC)
 
