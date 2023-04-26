@@ -56,19 +56,19 @@ TODO:
   - [x] Add magnitude cut test <-- Not good results
   - [x] Add ABC classification
   - [x] Test t-snes dim reduction <-- does not help
-- [ ] Add new databases [NASA/ADS Search](https://ui.adsabs.harvard.edu/search/filter_database_fq_database=AND&filter_database_fq_database=database%3A%22astronomy%22&filter_property_fq_property=AND&filter_property_fq_property=property%3A%22refereed%22&fq=%7B!type%3Daqp%20v%3D%24fq_database%7D&fq=%7B!type%3Daqp%20v%3D%24fq_property%7D&fq_database=(database%3A%22astronomy%22)&fq_property=(property%3A%22refereed%22)&q=abs%3A%22new%20open%20clusters%22&sort=date%20desc%2C%20bibcode%20desc&p_=0)
+- [x] Add new databases [NASA/ADS Search](https://ui.adsabs.harvard.edu/search/filter_database_fq_database=AND&filter_database_fq_database=database%3A%22astronomy%22&filter_property_fq_property=AND&filter_property_fq_property=property%3A%22refereed%22&fq=%7B!type%3Daqp%20v%3D%24fq_database%7D&fq=%7B!type%3Daqp%20v%3D%24fq_property%7D&fq_database=(database%3A%22astronomy%22)&fq_property=(property%3A%22refereed%22)&q=abs%3A%22new%20open%20clusters%22&sort=date%20desc%2C%20bibcode%20desc&p_=0)
   - [ ] Download data for all databases including members
 - [x] Generate a single database with all the necessary data
 - [x] Make ucc.ar the landing site
 - [x] Write script to fetch the cluster region + process with fastMP
 - [x] Write script to generate plots
 - [x] Write a Jupyter notebook template
-- [ ] Write the landing page for the site
+- [x] Write the landing page for the site
 - [x] Write the template site for the clusters (https://app.aavso.org/vsp/ ?)
-- [ ] Store the un-edited DBs to retrieve the fundamental parameters
-  - [ ] Write script to retrieve the fundamental parameters
-- [ ] Write script to name each cluster
-- [ ] Write script to generate each template page + plots + notebook
+- [x] Store the un-edited DBs to retrieve the fundamental parameters
+  - [x] Write script to retrieve the fundamental parameters
+- [x] Write script to name each cluster
+- [x] Write script to generate each template page + plots + notebook
 - [ ] Write the article
 
 
@@ -293,6 +293,7 @@ New Open-cluster Candidates Found in the Galactic Disk Using Gaia
 DR2/EDR3 Data, [He et al. 2022](https://ui.adsabs.harvard.edu/abs/2022ApJS..260....8H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/260/8)
 
 The table contains 541 with no acronym, added 'CWNU_'.
+Replaced '---' with '' for RV values
 
 ### HE22_1
 A Blind All-sky Search for Star Clusters in Gaia EDR3: 886
