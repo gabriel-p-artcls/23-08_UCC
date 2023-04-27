@@ -101,20 +101,21 @@ def cluster_rename(name):
     name = name.strip()
 
     if name.startswith("FSR"):
-        if '_' in name:
-            n2 = name.split('_')[1]
-        else:
-            n2 = name.split(' ')[1]
-        n2 = int(n2)
-        if n2 < 10:
-            n2 = '000' + str(n2)
-        elif n2 < 100:
-            n2 = '00' + str(n2)
-        elif n2 < 1000:
-            n2 = '0' + str(n2)
-        else:
-            n2 = str(n2)
-        name = "FSR_" + n2
+        if ' ' in name or '_' in name:
+            if '_' in name:
+                n2 = name.split('_')[1]
+            else:
+                n2 = name.split(' ')[1]
+            n2 = int(n2)
+            if n2 < 10:
+                n2 = '000' + str(n2)
+            elif n2 < 100:
+                n2 = '00' + str(n2)
+            elif n2 < 1000:
+                n2 = '0' + str(n2)
+            else:
+                n2 = str(n2)
+            name = "FSR_" + n2
 
     if name.startswith("ESO"):
         if ' ' in name[4:]:
@@ -143,6 +144,14 @@ def cluster_rename(name):
 
 def get_unique_names(DB_names_match, DB_names_orig):
     """
+    Identify unique names for all the DBs. An entry can store more than
+    one unique name if the DB lists several names as belonging to the same
+    cluster.
+
+    If any cluster's name is identified with another name by any of the DBs
+    (eg: Pismis 6 & NGC 2645),these two clusters *that could be shown as
+    separate clusters by other DBs* will be merged into a single cluster
+    in the final list.
     """
     all_names, all_names_orig = [], []
     for k, names_match in DB_names_match.items():
@@ -161,6 +170,8 @@ def get_unique_names(DB_names_match, DB_names_orig):
             for clid, d_names in match_dict.items():
                 if name in d_names[1]:
                     clid_m += [clid]
+            # Remove possible duplicate id
+            clid_m = list(set(clid_m))
 
         if len(clid_m) == 0:
             match_dict[uid] = [[], []]
@@ -219,11 +230,14 @@ def get_matches(
     dbs_used, DB_data, DB_names_match, unique_names, unique_names_orig
 ):
     """
+    If any name in the name lists stored in 'unique_names' matches any name
+    in the lists of names in any DB, all those names are assumed to belong to
+    the same unique cluster
     """
     print("Matching databases...")
     cl_dict = {}
     # For each list of unique names
-    for q, cl in enumerate(unique_names):
+    for q, unique_n in enumerate(unique_names):
 
         # For each name in list
         cl_str = ';'.join(unique_names_orig[q])
@@ -243,7 +257,7 @@ def get_matches(
             ra, de, plx, pmra, pmde = cols[:-1]
 
             # For each name in this list of unique names
-            for name in cl:
+            for name in unique_n:
                 db_match = False
 
                 # For each name list in this DB

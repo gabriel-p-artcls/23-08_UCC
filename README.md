@@ -5,6 +5,7 @@
 
 - Databases included in cross-match
   - KHARCHENKO12
+  - LOKTIN17
   - CASTRO18
   - BICA19
   - SIM19
@@ -88,6 +89,27 @@ This DB lists the FSR clusters as "FSR XXXX" with leading zeros and the ESO
 clusters as "ESO XXX-XX" with leading zeroes.
 
 vdBergh-Hagen --> VDBH per CDS recommendation
+
+### LOKTIN17
+Updated version of the `homogeneous catalog of open cluster parameters',
+[Loktin & Popova 2017](https://ui.adsabs.harvard.edu/abs/2017AstBu..72..257L/abstract)
+
+Contains 11 clusters with an extra name in parenthesis, these were fixed as
+follows:
+
+```
+"Alpha_Persei, Melotte 20"
+"Collinder258, Har5"
+"Coma Star, Melotte 111"
+"Herschel1, ASCC41"
+"Hyades, Melotte 25"
+"NGC2645, Pismis6"
+"NGC2682, Melotte 67"
+"NGC3247, Cr220"
+"Pleiades, Melotte 45"
+"Praesepe, NGC2632"
+"Stephenson1, Del_L"
+```
 
 ### CASTRO18
 A new method for unveiling open clusters in Gaia. New nearby open
@@ -434,40 +456,41 @@ We thus include in our catalogue only a fraction of those listed by HUNT23.
 After cross-matching the sanitized databases we have:
 
 ```
-1 KHARCHENKO12 2858
-2 CASTRO18 23
-3 BICA19 3560
-4 CASTRO19 53
-5 SIM19 204
-6 LIUPANG19 76
-7 FERREIRA19 3
-8 CANTAT20 2017
-9 CASTRO20 570
-10 FERREIRA20 25
-11 HAO20 16
-12 DIAS21 1604
-13 CASADO21 20
-14 FERREIRA21 34
-15 HUNT21 41
-16 JAEHNIG21 11
-17 SANTOS21 5
-18 HE21 74
-19 CASTRO22 628
-20 TARRICQ22 467
-21 LI22 61
-22 HE22 541
-23 HE22_1 270
-24 HE22_2 1656
-25 HAO22 704
-26 HUNT23 6856
-27 QIN23 101
-28 LI23 35
-29 CHI23_2 46
-30 CHI23 82
-31 CHI23_3 1179
+KHARCHENKO12 2858
+LOKTIN17 1052
+CASTRO18 23
+BICA19 3560
+CASTRO19 53
+SIM19 204
+LIUPANG19 76
+FERREIRA19 3
+CANTAT20 2017
+CASTRO20 570
+FERREIRA20 25
+HAO20 16
+DIAS21 1604
+CASADO21 20
+FERREIRA21 34
+HUNT21 41
+JAEHNIG21 11
+SANTOS21 5
+HE21 74
+CASTRO22 628
+TARRICQ22 467
+LI22 61
+HE22 541
+HE22_1 270
+HE22_2 1656
+HAO22 704
+HUNT23 6856
+QIN23 101
+LI23 35
+CHI23_2 46
+CHI23 82
+CHI23_3 1179
 
-23820 clusters in all DBs
-Clusters in final cross-matched catalog: 13967
+24872 clusters in all DBs
+N=14103 unique names identified
 ```
 
 
