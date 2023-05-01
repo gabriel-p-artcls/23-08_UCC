@@ -4,23 +4,22 @@ from astropy.coordinates import angular_separation
 from pathlib import Path
 import numpy as np
 import pandas as pd
-import csv
 from scipy import spatial
 import main_process_GDR3_query as G3Q
 import time as t
 
-# # LOCAL RUN
-# # insert at 1, 0 is the script path (or '' in REPL)
-# import sys
-# sys.path.insert(1, '/home/gabriel/Github/fastmp/')  # Path to fastMP
-# frames_path = '/media/gabriel/backup/gabriel/GaiaDR3/datafiles_G20/'
-# comb_DBs = "../../2_pipeline/3_final_DB.csv"
+# LOCAL RUN
+# insert at 1, 0 is the script path (or '' in REPL)
+import sys
+sys.path.insert(1, '/home/gabriel/Github/fastmp/')  # Path to fastMP
+frames_path = '/media/gabriel/backup/gabriel/GaiaDR3/datafiles_G20/'
+comb_DBs = "../../2_pipeline/UCC_cat_20230429.csv"
 
-# CLUSTER RUN
-# Path to the database with Gaia DR3 data
-frames_path = '/home/gperren/GaiaDR3/datafiles_G20/'
-# Full database of clusters (in this folder)
-comb_DBs = "3_final_DB.csv"
+# # CLUSTER RUN
+# # Path to the database with Gaia DR3 data
+# frames_path = '/home/gperren/GaiaDR3/datafiles_G20/'
+# # Full database of clusters (in this folder)
+# comb_DBs = "3_final_DB.csv"
 
 from fastmp import fastMP
 
@@ -45,13 +44,6 @@ def main(N_cl_extra=10):
     """
     N_cl_extra: number of extra clusters in frame to detect
     """
-    # Generate final table
-    with open(out_path + f"table_{run_ID}.csv", "w") as f:
-        f.write(
-            "DB,DB_i,ID,fname,dups_fnames,UCC_ID,"
-            + "Class,Class_v,GLON,GLAT,RA_ICRS,DE_ICRS,plx,pmRA,pmDE,RV,"
-            + "N_membs,bad_cents\n")
-
     # Read data
     frames_data, database_full = read_input()
 
@@ -76,14 +68,14 @@ def main(N_cl_extra=10):
         clusters_list = database_full[4*N_r:]
 
     # # # Full list
-    # clusters_list = database_full
+    clusters_list = database_full
     # # Shuffle
     # clusters_list = clusters_list.sample(frac=1).reset_index(drop=True)
 
     for index, cl in clusters_list.iterrows():
 
-        # if cl['fname'] not in ('blanco1',):
-        #     continue
+        if cl['fname'] not in ('mwsc4688',):
+            continue
         print("\n" + str(index), cl['fname'], cl['GLON'], cl['GLAT'],
               cl['pmRA'], cl['pmDE'], cl['plx'])
 
@@ -124,7 +116,8 @@ def main(N_cl_extra=10):
                 xy_c=xy_c, vpd_c=vpd_c, plx_c=plx_c, centers_ex=centers_ex,
                 fixed_centers=fixed_centers).fit(X)
 
-            bad_center = check_centers(X, xy_c, vpd_c, plx_c, probs_all)
+            bad_center = check_centers(
+                *X[:5, :], xy_c, vpd_c, plx_c, probs_all)
 
             if bad_center == '000' or fixed_centers is True:
                 break
@@ -132,19 +125,15 @@ def main(N_cl_extra=10):
                 # print("Re-run with fixed_centers = True")
                 fixed_centers = True
 
-        classif = get_classif(X[0], X[1], X[2], X[3], X[4], probs_all)
-        abcd_v = UCC_value(classif)
-
-        df = extract_members(data, probs_all, N_membs)
-        bad_center = check_centers(df, xy_c, vpd_c, plx_c)
-
-        print("{}: Nmembs={}, P>0.5={}, Class={}, t={}, cents={}".format(
-              cl['fname'], N_membs, (probs_all > 0.5).sum(), classif,
+        bad_center = check_centers(*X[:5, :], xy_c, vpd_c, plx_c, probs_all)
+        print("*** {}: Nmembs={}, P>0.5={}, t={}, cents={}".format(
+              cl['fname'], N_membs, (probs_all > 0.5).sum(),
               round(t.time() - start, 1), bad_center))
 
-        # Write output
-        write_out(run_ID, out_path, cl, df, probs_all, classif, abcd_v,
-                  bad_center)
+        # Write member stars for cluster
+        df = filter_stars_not_used(data, probs_all, N_membs)
+        df.to_csv(out_path + cl['fname'] + ".csv.gz", index=False,
+                  compression='gzip')
 
 
 def read_input():
@@ -238,128 +227,46 @@ def get_close_cls(database_full, database_fnames, close_cl_idx, fname, dups):
         ex_cl_dict = {
             'xy': [database_full['GLON'][i], database_full['GLAT'][i]]}
 
+        # Only use clusters with defined centers in PMs and Plx, otherwise
+        # non-bonafide clusters disrupt the process for established clusters
+        # like NGC 2516
+        if np.isnan(database_full['pmRA'][i])\
+                or np.isnan(database_full['plx'][i]):
+            continue
+
         if not np.isnan(database_full['pmRA'][i]):
             ex_cl_dict['pms'] = [
                 database_full['pmRA'][i], database_full['pmDE'][i]]
         if not np.isnan(database_full['plx'][i]):
             ex_cl_dict['plx'] = [database_full['plx'][i]]
 
+        # print(database_full['ID'][i], ex_cl_dict)
+
         centers_ex.append(ex_cl_dict)
 
     return centers_ex
 
 
-def get_classif(
-    lon, lat, pmRA, pmDE, plx, probs_final, rad_max=2, N_membs_min=25
+def check_centers(
+    lon, lat, pmRA, pmDE, plx, xy_c, vpd_c, plx_c, probs_all, N_membs_min=25
 ):
     """
     """
-    # Filter stars beyond 2 times the 95th percentile distance from the center
-    msk_membs = probs_final > 0.5
-    if msk_membs.sum() < N_membs_min:
-        msk_membs = probs_final > 0.25
-    if msk_membs.sum() < N_membs_min:
-        return 'DDD'
+    # Select high-quality members
+    msk = probs_all > 0.5
+    if msk.sum() < N_membs_min:
+        idx = np.argsort(probs_all)[::-1][:N_membs_min]
+        msk = np.full(len(probs_all), False)
+        msk[idx] = True
 
-    xy_c = np.nanmedian([lon[msk_membs], lat[msk_membs]], 1)
-    xy = np.array([lon[msk_membs], lat[msk_membs]]).T
-    xy_rads = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
-    xy_rad = np.percentile(xy_rads, 95)
-    xy = np.array([lon, lat]).T
-    xy_rads = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
-    msk_xy = xy_rads < rad_max * xy_rad
-    lon, lat, pmRA, pmDE, plx, probs_final = lon[msk_xy], lat[msk_xy],\
-        pmRA[msk_xy], pmDE[msk_xy], plx[msk_xy], probs_final[msk_xy]
-
-    # Select most probable members
-    msk_membs = probs_final > 0.5
-    if msk_membs.sum() < N_membs_min:
-        msk_membs = probs_final > 0.25
-    if msk_membs.sum() < N_membs_min:
-        return 'DDD'
-
-    lon_m, lat_m, pmRA_m, pmDE_m, plx_m = lon[msk_membs], lat[msk_membs],\
-        pmRA[msk_membs], pmDE[msk_membs], plx[msk_membs]
-
-    xy_c = np.nanmedian([lon_m, lat_m], 1)
-    vpd_c = np.nanmedian([pmRA_m, pmDE_m], 1)
-    plx_c = np.nanmedian(plx_m)
-
-    # Median distances to centers for members
-    xy = np.array([lon_m, lat_m]).T
-    xy_dists = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
-    xy_50 = np.nanmedian(xy_dists)
-    pm = np.array([pmRA_m, pmDE_m]).T
-    pm_dists = spatial.distance.cdist(pm, np.array([vpd_c])).T[0]
-    pm_50 = np.nanmedian(pm_dists)
-    plx_dists = abs(plx_m - plx_c)
-    plx_50 = np.nanmedian(plx_dists)
-    # Count member stars within median distances
-    N_memb_xy = (xy_dists < xy_50).sum()
-    N_memb_pm = (pm_dists < pm_50).sum()
-    N_memb_plx = (plx_dists < plx_50).sum()
-
-    # Median distances to centers for field stars
-    xy = np.array([lon[~msk_membs], lat[~msk_membs]]).T
-    xy_dists_f = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
-    pm = np.array([pmRA[~msk_membs], pmDE[~msk_membs]]).T
-    pm_dists_f = spatial.distance.cdist(pm, np.array([vpd_c])).T[0]
-    plx_dists_f = abs(plx[~msk_membs] - plx_c)
-    # Count field stars within median distances
-    N_field_xy = (xy_dists_f < xy_50).sum()
-    N_field_pm = (pm_dists_f < pm_50).sum()
-    N_field_plx = (plx_dists_f < plx_50).sum()
-
-    def ABCD_classif(Nm, Nf):
-        """Obtain 'ABCD' classification"""
-        if Nm == 0:
-            return "D"
-        if Nf == 0:
-            return "A"
-        N_ratio = Nm / Nf
-
-        if N_ratio >= 1:
-            cl = "A"
-        elif N_ratio < 1 and N_ratio >= 0.5:
-            cl = "B"
-        elif N_ratio < 0.5 and N_ratio > 0.1:
-            cl = "C"
-        else:
-            cl = "D"
-        return cl
-
-    c_xy = ABCD_classif(N_memb_xy, N_field_xy)
-    c_pm = ABCD_classif(N_memb_pm, N_field_pm)
-    c_plx = ABCD_classif(N_memb_plx, N_field_plx)
-    classif = c_xy + c_pm + c_plx
-
-    return classif
-
-
-def check_centers(X, xy_c, vpd_c, plx_c, probs_all=None, N_membs_min=25):
-    """
-    """
-    if probs_all is None:
-        lon, lat, pmRA, pmDE, plx = X['GLON'].values, X['GLAT'].values,\
-            X['pmRA'].values, X['pmDE'].values, X['Plx'].values
-    else:
-        msk = probs_all > 0.7
-        if msk.sum() < N_membs_min:
-            msk = probs_all > 0.5
-        if msk.sum() < N_membs_min:
-            msk = probs_all > 0.25
-        if msk.sum() < N_membs_min:
-            msk = probs_all >= 0
-        lon, lat, pmRA, pmDE, plx = X[:5, msk]
     # Centers of selected members
-    xy_c_f = np.nanmedian([lon, lat], 1)
-    vpd_c_f = np.nanmedian([pmRA, pmDE], 1)
-    plx_c_f = np.nanmedian(plx)
+    xy_c_f = np.nanmedian([lon[msk], lat[msk]], 1)
+    vpd_c_f = np.nanmedian([pmRA[msk], pmDE[msk]], 1)
+    plx_c_f = np.nanmedian(plx[msk])
 
     bad_center_xy, bad_center_pm, bad_center_plx = '0', '0', '0'
 
     # 5 arcmin maximum
-    # x_d, y_d = abs(xy_c_f - xy_c) / 60
     d_arcmin = angular_separation(xy_c_f[0], xy_c_f[1], xy_c[0], xy_c[1]) * 60
     if d_arcmin > 5:
         # print("d_arcmin: {:.1f}".format(d_arcmin))
@@ -410,60 +317,14 @@ def check_centers(X, xy_c, vpd_c, plx_c, probs_all=None, N_membs_min=25):
     return bad_center
 
 
-def extract_members(data, probs_all, N_membs, prob_min=0.5):
+def filter_stars_not_used(data, probs_all, N_membs, prob_min=0):
     """
     """
-    data['probs'] = np.round(probs_all, 2)
-    msk = probs_all > prob_min
-
-    if N_membs > msk.sum():
-        idx = np.argsort(probs_all)[::-1][:N_membs]
-        msk = np.full(len(probs_all), False)
-        msk[idx] = True
+    data['probs'] = np.round(probs_all, 3)
+    msk = probs_all >= prob_min
 
     df = data[msk]
     return df
-
-
-def write_out(
-    run_ID, out_path, cl, df, probs_all, classif, abcd_v, bad_center_count
-):
-    """
-    """
-    # Write member stars for cluster
-    df.to_csv(out_path + cl['fname'] + ".csv.gz", index=False,
-              compression='gzip')
-
-    lon, lat = np.nanmedian(df['GLON']), np.nanmedian(df['GLAT'])
-    ra, dec = np.nanmedian(df['RA_ICRS']), np.nanmedian(df['DE_ICRS'])
-    plx = np.nanmedian(df['Plx'])
-    pmRA, pmDE = np.nanmedian(df['pmRA']), np.nanmedian(df['pmDE'])
-    nan_c = np.isnan(df['RV'].values).sum()
-    RV = [np.nan if nan_c > 0 else np.nanmedian(df['RV'])][0]
-    lon, lat = round(lon, 4), round(lat, 4)
-    ra, dec = round(ra, 4), round(dec, 4)
-    plx = round(plx, 4)
-    pmRA, pmDE = round(pmRA, 4), round(pmDE, 4)
-    RV = round(RV, 4)
-
-    df_row = pd.DataFrame(data={
-        "DB": [cl['DB']], "DB_i": [cl['DB_i']], "ID": [cl['ID']],
-        'fname': [cl['fname']], "dups_fnames": [cl['dups_fnames']],
-        "UCC_ID": [cl['UCC_ID']], 'Class': classif, "Class_v": [abcd_v], 
-        "GLON": [lon], "GLAT": [lat], "RA_ICRS": [ra], "DE_ICRS": [dec],
-        "plx": [plx], "pmRA": [pmRA], "pmDE": [pmDE], "RV": [RV],
-        "N_membs": [len(df)], "bad_cents": [bad_center_count]})
-    df_row.to_csv(out_path + f"table_{run_ID}.csv", mode='a', header=False,
-                  index=False, na_rep='nan', quoting=csv.QUOTE_NONNUMERIC)
-
-
-def UCC_value(abcd_c):
-    """
-    """
-    class_2_num = {'A': 1., 'B': 0.5, 'C': 0.25, 'D': 0.1}
-    c1, c2, c3 = abcd_c
-    abcd_v = (class_2_num[c1] + class_2_num[c2] + class_2_num[c3]) / 3
-    return round(abcd_v, 2)
 
 
 if __name__ == '__main__':
