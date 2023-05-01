@@ -89,6 +89,8 @@ This DB lists the FSR clusters as "FSR XXXX" with leading zeros and the ESO
 clusters as "ESO XXX-XX" with leading zeroes.
 
 vdBergh-Hagen --> VDBH per CDS recommendation
+vdBergh       --> VDB per CDS recommendation
+
 
 ### LOKTIN17
 Updated version of the `homogeneous catalog of open cluster parameters',
@@ -110,6 +112,9 @@ follows:
 "Praesepe, NGC2632"
 "Stephenson1, Del_L"
 ```
+
+VDBergh_Hagen --> VDBH per CDS recommendation
+VDBergh       --> VDB per CDS recommendation
 
 ### CASTRO18
 A new method for unveiling open clusters in Gaia. New nearby open
@@ -153,7 +158,8 @@ de Wit 1 --> Wit 1 (to match KHARCHENKO12)
 JS 1 --> Juchert-Saloran 1 (to match KHARCHENKO12)
 ESO 589-26,MW --> ESO 589-26
 Messineo 1,Cl 1813-18,SAI 126, --> Remove comma at the end
-BH --> VDBH per CDS recommendation
+BH       --> VDBH per CDS recommendation
+vdBergh  --> VDB per CDS recommendation
 
 This is the only DB that lists the Ryu & Lee (2018) clusters. The original
 article claims to have found 721 new OCs (923 minus 202 embedded). BICA19 (page
@@ -216,7 +222,8 @@ Painting a portrait of the Galactic disc with its stellar clusters;
 The table contains 2017 clusters. This DB lists the FSR clusters as "FSR_XXXX"
 with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
 
-BH --> VDBH per CDS recommendation
+BH        --> VDBH per CDS recommendation
+vdBergh_  --> VDB per CDS recommendation
 LP_ --> FoF_ to match the original work LIUPANG19
 
 ### HAO20
@@ -249,7 +256,8 @@ listed as new by the authors. We remove all except those listed as new in
 LIUPANG19. Cluster 866 was duplicated so one entry was removed. Changed
 'LP_' to 'FoF_' for consistency.
 
-BH --> VDBH per CDS recommendation
+BH       --> VDBH per CDS recommendation
+vdBergh  --> VDB per CDS recommendation
 
 This DB contains wrong RA data for several clusters (differences with HAO21:
 `10>1 deg`, `14>0.5 deg`, `86>0.1 deg`)
@@ -362,7 +370,8 @@ objects listed nearby.
 Fixed:
 ESO 589-26,MW --> ESO 589-26 (dragged from BICA19)
 ESO_429-429 --> ESO_429-02 (according to CDS coords)
-BH --> VDBH per CDS recommendation
+BH        --> VDBH per CDS recommendation
+vdBergh_  --> VDB_ per CDS recommendation
 
 ### QIN23
 Hunting for Neighboring Open Clusters with Gaia DR3: 101 New Open
@@ -490,7 +499,7 @@ CHI23 82
 CHI23_3 1179
 
 24872 clusters in all DBs
-N=14103 unique names identified
+N=14097 unique names identified
 ```
 
 
