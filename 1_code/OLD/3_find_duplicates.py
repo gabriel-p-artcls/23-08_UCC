@@ -1,4 +1,5 @@
 
+import datetime
 import numpy as np
 import pandas as pd
 import csv
@@ -7,7 +8,7 @@ from scipy.spatial.distance import cdist
 
 path_io = "../2_pipeline/"
 db_in = '2_standard_names_DB.csv'
-db_out = '3_final_DB.csv'
+db_out = 'UCC_cat_'
 
 
 def main(N_dups=10):
@@ -20,10 +21,11 @@ def main(N_dups=10):
 
     # Store duplicates in final catalogue
     df['dups_fnames'] = dups_fnames
-    # df['dups_names'] = dups_names
 
     # Save to file
-    df.to_csv(path_io + db_out, na_rep='nan', index=False,
+    d = datetime.datetime.now()
+    date = d.strftime('%Y%m%d')
+    df.to_csv(path_io + db_out + date + '.csv', na_rep='nan', index=False,
               quoting=csv.QUOTE_NONNUMERIC)
     print("\nFinal database written to file")
 
@@ -59,10 +61,11 @@ def dups_identify(df, N_dups):
             dup_flag = duplicate_find(d, pm_d, plx_d, plx[i])
 
             if dup_flag:
-                dups_fname.append(df['fname'][j])
+                fname = df['fnames'][j].split(';')[0]
+                dups_fname.append(fname)
 
         if dups_fname:
-            print(i, df['fname'][i], len(dups_fname), dups_fname)
+            print(i, df['fnames'][i], len(dups_fname), dups_fname)
             dups_fname = ";".join(dups_fname)
         else:
             dups_fname = 'nan'

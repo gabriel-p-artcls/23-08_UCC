@@ -19,10 +19,9 @@ def main():
     no_dup_names = rm_dup_names(dbs['ID'])
     dbs['ID'] = no_dup_names
 
-    all_names_reorder, fnames = assign_fname(dbs['ID'])
+    all_names_reorder, fnames_reorder = assign_fname(dbs['ID'])
     dbs['ID'] = all_names_reorder
-    dbs['fname'] = fnames
-    dup_check(fnames, dbs)
+    dbs['fnames'] = fnames_reorder
 
     ucc_ids = assign_UCC_ids(dbs['GLON'], dbs['GLAT'])
     dbs['UCC_ID'] = ucc_ids
@@ -72,7 +71,7 @@ def assign_fname(all_names):
     """
     Assign names used for files and urls
     """
-    fnames, all_names_reorder = [], []
+    all_names_reorder, all_fnames_reorder = [], []
     for names in all_names:
         names = names.split(';')
         fnames_temp = []
@@ -81,18 +80,19 @@ def assign_fname(all_names):
             # We replace '+' with 'p' to avoid duplicating names for clusters
             # like 'Juchert J0644.8-0925' and 'Juchert_J0644.8+0925'
             name = name.lower().replace('_', '').replace(' ', '').replace(
-                '-', '').replace('.', '').replace('+', 'p')
+                '-', '').replace('.', '').replace("'", '').replace('+', 'p')
             fnames_temp.append(name)
 
-        names_reorder, fname = preferred_names(names, fnames_temp)
+        names_reorder, fnames_reorder = preferred_names(names, fnames_temp)
 
         all_names_reorder.append(";".join(names_reorder))
-        fnames.append(fname)
+        # all_fnames_reorder.append(";".join(fnames_reorder))
+        all_fnames_reorder.append(';'.join(list(dict.fromkeys(fnames_reorder))))
 
-    return all_names_reorder, fnames
+    return all_names_reorder, all_fnames_reorder
 
 
-def preferred_names(names, fnames_temp):
+def preferred_names(names, fnames):
     """
     Use naming conventions according to this list of preferred names
     """
@@ -104,34 +104,40 @@ def preferred_names(names, fnames_temp):
         'platais', 'harvard', 'czernik', 'koposov', 'eso', 'ascc', 'teutsch',
         'alessi', 'king', 'saurer', 'fsr', 'juchert', 'antalova', 'stephenson')
 
-    # Move 'MWSC to the last position'
-    if len(fnames_temp) > 1 and "mwsc" in fnames_temp[0]:
-        fnames_temp = fnames_temp[1:] + [fnames_temp[0]]
-        names = names[1:] + [names[0]]
-
-    # Select the first name listed
-    names_reorder, fname = list(names), fnames_temp[0]
-
     # Replace with another name according to the preference list
-    if len(fnames_temp) > 1:
+    if len(names) == 1:
+        return names, fnames
 
-        id_found = False
+    # Always move 'MWSC to the last position'
+    if "mwsc" in fnames[0]:
+        names = names[1:] + [names[0]]
+        fnames = fnames[1:] + [fnames[0]]
+
+    # # Select the first name listed
+    def find_preferred_name(fnames):
+        """Replace with another name according to the preference list"""
         for name_prefer in names_lst:
-            for i, name in enumerate(fnames_temp):
+            for i, name in enumerate(fnames):
                 if name_prefer in name:
-                    id_found = True
-                    break
-            if id_found:
-                break
+                    return i
+        return None
 
-        if id_found:
-            # Store 'fname' and reorder 'names'
-            fname = fnames_temp[i]
-            name0 = names_reorder[i]
-            del names_reorder[i]
-            names_reorder = [name0] + names_reorder
+    def reorder_names(nms_lst, i):
+        nms_reorder = list(nms_lst)
+        name0 = nms_reorder[i]
+        del nms_reorder[i]
+        nms_reorder = [name0] + nms_reorder
+        return nms_reorder
 
-    return names_reorder, fname
+    i = find_preferred_name(fnames)
+    if i is not None:
+        # Reorder
+        names_reorder = reorder_names(names, i)
+        fnames_reorder = reorder_names(fnames, i)
+    else:
+        names_reorder, fnames_reorder = names, fnames
+
+    return names_reorder, fnames_reorder
 
 
 def assign_UCC_ids(glon, glat):

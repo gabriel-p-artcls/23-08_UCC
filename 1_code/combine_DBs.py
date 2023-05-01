@@ -1,13 +1,17 @@
 
+import datetime
 import numpy as np
 import json
 import csv
 import pandas as pd
+from string import ascii_lowercase
+from scipy.spatial.distance import cdist
 from astropy.coordinates import SkyCoord
+from astropy.coordinates import angular_separation
 import astropy.units as u
 
 """
-Script used to combine all the  databases using the clusters' names
+Script used to combine all the databases using the clusters' names
 """
 
 dbs_folder = '/home/gabriel/Github/web_sites/UCC/datafiles/'
@@ -15,28 +19,49 @@ DBs_json = "all_dbs.json"
 out_path = '../2_pipeline/'
 
 
-def main():
+def main(N_dups=10):
     """
     """
-    dbs_used, DB_data, DB_names_match, DB_names_orig = get_data_and_names()
+    with open(dbs_folder + DBs_json) as f:
+        dbs_used = json.load(f)
 
+    print("Read DBs and extract names...")
+    DB_data, DB_names_match, DB_names_orig = get_data_and_names(dbs_used)
+
+    print("Extracting unique names...")
     unique_names, unique_names_orig = get_unique_names(
         DB_names_match, DB_names_orig)
 
+    print("Matching databases...")
     cl_dict = get_matches(
         dbs_used, DB_data, DB_names_match, unique_names, unique_names_orig)
 
-    final_DB = combine_DBs(cl_dict)
+    print("Generating combined catalogue...")
+    comb_dbs = combine_DBs(cl_dict)
 
-    print("Writing to file...")
-    pd.DataFrame(final_DB).to_csv(
-        out_path + '1_combined_DBs.csv', na_rep='nan', index=False,
+    print("Remove duplicate names...")
+    comb_dbs['ID'] = rm_dup_names(comb_dbs['ID'])
+
+    print("Assign fnames...")
+    comb_dbs['ID'], comb_dbs['fnames'] = assign_fname(comb_dbs['ID'])
+    dup_check(comb_dbs['fnames'])
+
+    print("Assign UCC IDs...")
+    comb_dbs['UCC_ID'] = assign_UCC_ids(comb_dbs['GLON'], comb_dbs['GLAT'])
+
+    print(f"Finding duplicates (max={N_dups})...")
+    comb_dbs['dups_fnames'] = dups_identify(comb_dbs, N_dups)
+
+    # Save to file
+    d = datetime.datetime.now()
+    date = d.strftime('%Y%m%d')
+    pd.DataFrame(comb_dbs).to_csv(
+        out_path + 'UCC_cat_' + date + '.csv', na_rep='nan', index=False,
         quoting=csv.QUOTE_NONNUMERIC)
-    
-    print("Combined database written to file")
+    print("\nFinal database written to file")
 
 
-def get_data_and_names():
+def get_data_and_names(dbs_used):
     """
     1. For each DB extract and store all its data --> DB_data
     2. For each cluster in each DB extract and standardize its
@@ -44,9 +69,6 @@ def get_data_and_names():
     3. For each cluster in each DB extract its original unedited
        name(s) --> DB_names_orig
     """
-    with open(dbs_folder + DBs_json) as f:
-        dbs_used = json.load(f)
-
     DB_data, DB_names_match, DB_names_orig, N_all = {}, {}, {}, 0
     for DB, _ in dbs_used.items():
         # Load DB data
@@ -64,10 +86,9 @@ def get_data_and_names():
             names_l, names_l_orig = [], []
             names_s = names.split(',')
             for name in names_s:
-                name = cluster_rename(name)
-
-                names_l.append(name.lower().replace('_', '').replace(
-                               ' ', '').replace('-', ''))
+                name = name.strip()
+                name = FSR_ESO_rename(name)
+                names_l.append(rm_chars_from_name(name))
                 names_l_orig.append(name)
 
             names_final.append(names_l)
@@ -77,12 +98,12 @@ def get_data_and_names():
         DB_names_match[DB] = names_final
         DB_names_orig[DB] = names_orig
 
-    print(f"\n{N_all} clusters in all DBs")
+    print(f"\nN={N_all} clusters in all DBs")
 
-    return dbs_used, DB_data, DB_names_match, DB_names_orig
+    return DB_data, DB_names_match, DB_names_orig
 
 
-def cluster_rename(name):
+def FSR_ESO_rename(name):
     """
     Standardize the naming of these clusters watching for 
 
@@ -98,8 +119,6 @@ def cluster_rename(name):
     ESO_XXX-YY w leading zeros
     ESO_XXX-YY w/o leading zeros
     """
-    name = name.strip()
-
     if name.startswith("FSR"):
         if ' ' in name or '_' in name:
             if '_' in name:
@@ -142,6 +161,18 @@ def cluster_rename(name):
     return name
 
 
+def rm_chars_from_name(name):
+    """
+    """
+    # name = name.lower().replace('_', '').replace(
+    #     ' ', '').replace('-', '').replace("'", '')
+    # We replace '+' with 'p' to avoid duplicating names for clusters
+    # like 'Juchert J0644.8-0925' and 'Juchert_J0644.8+0925'
+    name = name.lower().replace('_', '').replace(' ', '').replace(
+        '-', '').replace('.', '').replace("'", '').replace('+', 'p')
+    return name
+
+
 def get_unique_names(DB_names_match, DB_names_orig):
     """
     Identify unique names for all the DBs. An entry can store more than
@@ -157,8 +188,6 @@ def get_unique_names(DB_names_match, DB_names_orig):
     for k, names_match in DB_names_match.items():
         all_names += names_match
         all_names_orig += DB_names_orig[k]
-
-    print("Extracting unique names...")
 
     match_dict = {}
     for i, names_l in enumerate(all_names):
@@ -204,23 +233,6 @@ def get_unique_names(DB_names_match, DB_names_orig):
         unique_names_orig.append(v[0])
         unique_names.append(v[1])
 
-    # # Check for duplicates
-    # for i, cl in enumerate(unique_names):
-    #     flag_match = False
-    #     for cl0 in cl:
-    #         for j, cl_rest in enumerate(unique_names[i + 1:]):
-    #             for cl1 in cl_rest:
-    #                 if cl0 == cl1:
-    #                     flag_match = True
-    #                     break
-    #             if flag_match:
-    #                 break
-    #         if flag_match:
-    #             break
-    #     if flag_match:
-    #         print(i, i + 1 + j, cl, unique_names[i + 1 + j])
-    # print("end check")
-
     print(f"N={len(unique_names)} unique names identified")
 
     return unique_names, unique_names_orig
@@ -234,7 +246,6 @@ def get_matches(
     in the lists of names in any DB, all those names are assumed to belong to
     the same unique cluster
     """
-    print("Matching databases...")
     cl_dict = {}
     # For each list of unique names
     for q, unique_n in enumerate(unique_names):
@@ -296,8 +307,6 @@ def combine_DBs(cl_dict):
     """
     Store unique values for each cluster
     """
-    print("Generating final data...")
-
     db_l, db_i_l, names_l, ra_l, dec_l, glon_l, glat_l, plx_l, pmRA_l,\
         pmDE_l = [[] for _ in range(10)]
     for names, v in cl_dict.items():
@@ -339,20 +348,13 @@ def combine_DBs(cl_dict):
         pmDE_l.append(round(pmDE_m, 3))
 
     # Store combined databases
-    final_DB = {
+    comb_dbs = {
         'DB': db_l, 'DB_i': db_i_l, 'ID': names_l, 'RA_ICRS': ra_l,
         'DE_ICRS': dec_l, 'GLON': glon_l, 'GLAT': glat_l, 'plx': plx_l,
         'pmRA': pmRA_l, 'pmDE': pmDE_l
     }
 
-    return final_DB
-
-
-def lonlat2radec(lon, lat):
-    gc = SkyCoord(l=lon * u.degree, b=lat * u.degree, frame='galactic')
-    rd = gc.transform_to('fk5')
-    ra, dec = rd.ra.value, rd.dec.value
-    return np.round(ra, 5), np.round(dec, 5)
+    return comb_dbs
 
 
 def radec2lonlat(ra, dec):
@@ -360,6 +362,245 @@ def radec2lonlat(ra, dec):
     lb = gc.transform_to('galactic')
     lon, lat = lb.l.value, lb.b.value
     return np.round(lon, 5), np.round(lat, 5)
+
+
+def rm_dup_names(all_names):
+    """
+    This removes duplicates such as "NGC_2516" and "NGC 2516", "UBC 123" and
+    "UBC123" and "OC-4567" and "OC 4567"
+    """
+    no_dup_names = []
+    for names in all_names:
+        names = names.split(';')
+        names_temp = []
+        for name in names:
+            name = name.strip()
+            if 'UBC' in name and 'UBC ' not in name and 'UBC_' not in name:
+                name = name.replace('UBC', 'UBC ')
+            if 'UBC_' in name:
+                name = name.replace('UBC_', 'UBC ')
+
+            if 'UFMG' in name and 'UFMG ' not in name and 'UFMG_' not in name:
+                name = name.replace('UFMG', 'UFMG ')
+
+            if 'LISC' in name and 'LISC ' not in name and 'LISC_' not in name\
+                    and 'LISC-' not in name:
+                name = name.replace('LISC', 'LISC ')
+
+            if 'OC-' in name:
+                name = name.replace('OC-', 'OC ')
+            # Removes duplicates such as "NGC_2516" and "NGC 2516" 
+            name = name.replace('_', ' ')
+            names_temp.append(name)
+
+        # Equivalent to set() but maintains order
+        no_dup_names.append(';'.join(list(dict.fromkeys(names_temp))))
+
+    return no_dup_names
+
+
+def assign_fname(all_names):
+    """
+    The first entry in 'all_fnames_reorder' is used for files and urls
+    """
+    all_names_reorder, all_fnames_reorder = [], []
+    for names in all_names:
+        names = names.split(';')
+        fnames_temp = []
+        for i, name in enumerate(names):
+            name = name.strip()
+            fnames_temp.append(rm_chars_from_name(name))
+
+        names_reorder, fnames_reorder = preferred_names(names, fnames_temp)
+
+        all_names_reorder.append(";".join(names_reorder))
+        # all_fnames_reorder.append(";".join(fnames_reorder))
+        # Remove duplicated before storing
+        all_fnames_reorder.append(';'.join(list(dict.fromkeys(
+            fnames_reorder))))
+
+    return all_names_reorder, all_fnames_reorder
+
+
+def preferred_names(names, fnames):
+    """
+    Use naming conventions according to this list of preferred names
+    """
+    names_lst = (
+        'blanco', 'westerlund', 'ngc', 'melotte', 'trumpler', 'ruprecht',
+        'berkeley', 'pismis', 'vdbh', 'loden', 'kronberger', 'collinder',
+        'haffner', 'tombaugh', 'dolidze', 'auner', 'waterloo', 'basel',
+        'bochum', 'hogg', 'carraro', 'lynga', 'johansson', 'mamajek',
+        'platais', 'harvard', 'czernik', 'koposov', 'eso', 'ascc', 'teutsch',
+        'alessi', 'king', 'saurer', 'fsr', 'juchert', 'antalova', 'stephenson')
+
+    # Replace with another name according to the preference list
+    if len(names) == 1:
+        return names, fnames
+
+    # Always move 'MWSC to the last position'
+    if "mwsc" in fnames[0]:
+        names = names[1:] + [names[0]]
+        fnames = fnames[1:] + [fnames[0]]
+
+    # # Select the first name listed
+    def find_preferred_name(fnames):
+        """Replace with another name according to the preference list"""
+        for name_prefer in names_lst:
+            for i, name in enumerate(fnames):
+                if name_prefer in name:
+                    return i
+        return None
+
+    def reorder_names(nms_lst, i):
+        nms_reorder = list(nms_lst)
+        name0 = nms_reorder[i]
+        del nms_reorder[i]
+        nms_reorder = [name0] + nms_reorder
+        return nms_reorder
+
+    i = find_preferred_name(fnames)
+    if i is not None:
+        # Reorder
+        names_reorder = reorder_names(names, i)
+        fnames_reorder = reorder_names(fnames, i)
+    else:
+        names_reorder, fnames_reorder = names, fnames
+
+    return names_reorder, fnames_reorder
+
+
+def assign_UCC_ids(glon, glat):
+    """
+    Format: UCC GXXX.X+YY.Y
+    """
+    lonlat = np.array([glon, glat]).T
+    lonlat = trunc(lonlat)
+    
+    ucc_ids = []
+    for idx, ll in enumerate(lonlat):
+        lon, lat = str(ll[0]), str(ll[1])
+
+        if ll[0] < 10:
+            lon = '00' + lon
+        elif ll[0] < 100:
+            lon = '0' + lon
+
+        if ll[1] >= 10:
+            lat = '+' + lat
+        elif ll[1] < 10 and ll[1] > 0:
+            lat = '+0' + lat
+        elif ll[1] == 0:
+            lat = '+0' + lat.replace('-', '')
+        elif ll[1] < 0 and ll[1] >= -10:
+            lat = '-0' + lat[1:]
+        elif ll[1] < -10:
+            pass
+
+        ucc_id = 'UCC G' + lon + lat
+
+        i = 0
+        while True:
+            if i > 25:
+                ucc_id += "ERROR"
+                print("ERROR NAMING")
+                break
+            if ucc_id in ucc_ids:
+                if i == 0:
+                    # Add a letter to the end
+                    ucc_id += ascii_lowercase[i]
+                else:
+                    # Replace last letter
+                    ucc_id = ucc_id[:-1] + ascii_lowercase[i]
+                i += 1
+            else:
+                break
+
+        ucc_ids.append(ucc_id)
+
+    return ucc_ids
+
+
+def trunc(values, decs=1):
+    return np.trunc(values*10**decs)/(10**decs)
+
+
+def dup_check(fnames):
+    """
+    Check for duplicates in 'names' list
+    """
+    for i, cl0 in enumerate(fnames):
+        for j, cl1 in enumerate(fnames[i + 1:]):
+            for cl01 in cl0.split(';'):
+                if cl01 == cl1:
+                    print(i, i + 1 + j, cl0, cl1)
+                    breakpoint()
+                    break
+
+
+def dups_identify(df, N_dups):
+    """
+    Find the closest clusters to all clusters
+    """
+    x, y = df['GLON'], df['GLAT']
+    pmRA, pmDE, plx = df['pmRA'], df['pmDE'], df['plx']
+    coords = np.array([x, y]).T
+    # Find the distances to all clusters, for all clusters
+    dist = cdist(coords, coords)
+    # Change distance to itself from 0 to inf
+    msk = dist == 0.
+    dist[msk] = np.inf
+
+    dups_fnames = []
+    for i, cl in enumerate(dist):
+        idx = np.argsort(cl)[:N_dups]
+
+        dups_fname = []
+        for j in idx:
+            # Angular distance in arcmin (rounded)
+            d = round(angular_separation(x[i], y[i], x[j], y[j]) * 60, 2)
+            # PMs distance
+            pm_d = np.sqrt((pmRA[i]-pmRA[j])**2 + (pmDE[i]-pmDE[j])**2)
+            # Parallax distance
+            plx_d = abs(plx[i] - plx[j])
+
+            dup_flag = duplicate_find(d, pm_d, plx_d, plx[i])
+
+            if dup_flag:
+                fname = df['fnames'][j].split(';')[0]
+                dups_fname.append(fname)
+
+        if dups_fname:
+            # print(i, df['fnames'][i], len(dups_fname), dups_fname)
+            dups_fname = ";".join(dups_fname)
+        else:
+            dups_fname = 'nan'
+
+        dups_fnames.append(dups_fname)
+
+    return dups_fnames
+
+
+def duplicate_find(d, pm_d, plx_d, plx):
+    """
+    Identify a cluster as a duplicate following an arbitrary definition
+    that depends on the parallax
+    """
+    if plx >= 4:
+        rad, plx_r, pm_r = 15, 0.5, 1
+    elif 3 <= plx and plx < 4:
+        rad, plx_r, pm_r = 10, 0.25, 0.5
+    elif 2 <= plx and plx < 3:
+        rad, plx_r, pm_r = 5, 0.15, 0.25
+    elif 1 <= plx and plx < 2:
+        rad, plx_r, pm_r = 2.5, 0.1, 0.15
+    else:
+        rad, plx_r, pm_r = 1, 0.05, 0.1
+
+    if pm_d < pm_r and plx_d < plx_r and d < rad:
+        return True
+
+    return False
 
 
 if __name__ == '__main__':
