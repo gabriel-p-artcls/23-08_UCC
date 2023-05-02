@@ -19,22 +19,22 @@ DBs_json = "all_dbs.json"
 out_path = '../2_pipeline/'
 
 
-def main(N_dups=10):
+def main(sep=',', N_dups=10):
     """
     """
     with open(dbs_folder + DBs_json) as f:
         dbs_used = json.load(f)
 
     print("Read DBs and extract names...")
-    DB_data, DB_names_match, DB_names_orig = get_data_and_names(dbs_used)
+    DB_data, DB_fnames, DB_names_orig = get_data_and_names(dbs_used, sep)
 
     print("Extracting unique names...")
-    unique_names, unique_names_orig = get_unique_names(
-        DB_names_match, DB_names_orig)
+    unique_fnames, unique_names_orig = get_unique_names(
+        DB_fnames, DB_names_orig)
 
     print("Matching databases...")
     cl_dict = get_matches(
-        dbs_used, DB_data, DB_names_match, unique_names, unique_names_orig)
+        dbs_used, DB_data, DB_fnames, unique_fnames, unique_names_orig)
 
     print("Generating combined catalogue...")
     comb_dbs = combine_DBs(cl_dict)
@@ -61,15 +61,15 @@ def main(N_dups=10):
     print("\nFinal database written to file")
 
 
-def get_data_and_names(dbs_used):
+def get_data_and_names(dbs_used, sep):
     """
     1. For each DB extract and store all its data --> DB_data
     2. For each cluster in each DB extract and standardize its
-       name(s) --> DB_names_match
+       name(s) --> DB_fnames
     3. For each cluster in each DB extract its original unedited
        name(s) --> DB_names_orig
     """
-    DB_data, DB_names_match, DB_names_orig, N_all = {}, {}, {}, 0
+    DB_data, DB_fnames, DB_names_orig, N_all = {}, {}, {}, 0
     for DB, _ in dbs_used.items():
         # Load DB data
         data = pd.read_csv(
@@ -84,7 +84,7 @@ def get_data_and_names(dbs_used):
         names_final, names_orig = [], []
         for i, names in enumerate(names_all):
             names_l, names_l_orig = [], []
-            names_s = names.split(',')
+            names_s = names.split(sep)
             for name in names_s:
                 name = name.strip()
                 name = FSR_ESO_rename(name)
@@ -95,12 +95,12 @@ def get_data_and_names(dbs_used):
             # Store original names
             names_orig.append(names_l_orig)
 
-        DB_names_match[DB] = names_final
+        DB_fnames[DB] = names_final
         DB_names_orig[DB] = names_orig
 
     print(f"\nN={N_all} clusters in all DBs")
 
-    return DB_data, DB_names_match, DB_names_orig
+    return DB_data, DB_fnames, DB_names_orig
 
 
 def FSR_ESO_rename(name):
@@ -173,7 +173,7 @@ def rm_chars_from_name(name):
     return name
 
 
-def get_unique_names(DB_names_match, DB_names_orig):
+def get_unique_names(DB_fnames, DB_names_orig):
     """
     Identify unique names for all the DBs. An entry can store more than
     one unique name if the DB lists several names as belonging to the same
@@ -184,20 +184,20 @@ def get_unique_names(DB_names_match, DB_names_orig):
     separate clusters by other DBs* will be merged into a single cluster
     in the final list.
     """
-    all_names, all_names_orig = [], []
-    for k, names_match in DB_names_match.items():
-        all_names += names_match
+    all_fnames, all_names_orig = [], []
+    for k, fnames in DB_fnames.items():
+        all_fnames += fnames
         all_names_orig += DB_names_orig[k]
 
     match_dict = {}
-    for i, names_l in enumerate(all_names):
+    for i, fnames_l in enumerate(all_fnames):
         uid = "cl" + str(i)
 
         clid_m = []
-        for name in names_l:
+        for fname in fnames_l:
             # Check if any of these names is already in dictionary
             for clid, d_names in match_dict.items():
-                if name in d_names[1]:
+                if fname in d_names[1]:
                     clid_m += [clid]
             # Remove possible duplicate id
             clid_m = list(set(clid_m))
@@ -205,11 +205,11 @@ def get_unique_names(DB_names_match, DB_names_orig):
         if len(clid_m) == 0:
             match_dict[uid] = [[], []]
             match_dict[uid][0] = list(dict.fromkeys(all_names_orig[i]))
-            match_dict[uid][1] = list(dict.fromkeys(names_l))
+            match_dict[uid][1] = list(dict.fromkeys(fnames_l))
         elif len(clid_m) == 1:
             clid_m = clid_m[0]
             match_dict[clid_m][0] += all_names_orig[i]
-            match_dict[clid_m][1] += names_l
+            match_dict[clid_m][1] += fnames_l
             # Remove duplicates
             match_dict[clid_m][0] = list(dict.fromkeys(match_dict[clid_m][0]))
             match_dict[clid_m][1] = list(dict.fromkeys(match_dict[clid_m][1]))
@@ -217,7 +217,7 @@ def get_unique_names(DB_names_match, DB_names_orig):
             # Create new entry
             match_dict[uid] = [[], []]
             match_dict[uid][0] += all_names_orig[i]
-            match_dict[uid][1] += names_l
+            match_dict[uid][1] += fnames_l
             # Merge old entries into new entry
             for clid in clid_m:
                 match_dict[uid][0] += list(match_dict[clid][0])
@@ -228,27 +228,40 @@ def get_unique_names(DB_names_match, DB_names_orig):
             match_dict[uid][0] = list(dict.fromkeys(match_dict[uid][0]))
             match_dict[uid][1] = list(dict.fromkeys(match_dict[uid][1]))
 
-    unique_names, unique_names_orig = [], []
+    unique_fnames, unique_names_orig = [], []
     for k, v in match_dict.items():
         unique_names_orig.append(v[0])
-        unique_names.append(v[1])
+        unique_fnames.append(v[1])
 
-    print(f"N={len(unique_names)} unique names identified")
+    print(f"N={len(unique_fnames)} unique names identified")
 
-    return unique_names, unique_names_orig
+    return unique_fnames, unique_names_orig
 
 
 def get_matches(
-    dbs_used, DB_data, DB_names_match, unique_names, unique_names_orig
+    dbs_used, DB_data, DB_fnames, unique_fnames, unique_names_orig
 ):
     """
-    If any name in the name lists stored in 'unique_names' matches any name
+    If any name in the name lists stored in 'unique_fnames' matches any name
     in the lists of names in any DB, all those names are assumed to belong to
     the same unique cluster
     """
     cl_dict = {}
-    # For each list of unique names
-    for q, unique_n in enumerate(unique_names):
+    # For each list of unique fnames
+    for q, unique_fn in enumerate(unique_fnames):
+
+        # Remove duplicates of the kind: Berkeley 102, Berkeley102,
+        # Berkeley_102; keeping only the name with the space
+        for i, n in enumerate(unique_names_orig[q]):
+            n2 = n.replace(' ', '')
+            if n2 in unique_names_orig[q]:
+                j = unique_names_orig[q].index(n2)
+                unique_names_orig[q][j] = n
+            n2 = n.replace(' ', '_')
+            if n2 in unique_names_orig[q]:
+                j = unique_names_orig[q].index(n2)
+                unique_names_orig[q][j] = n
+        unique_names_orig[q] = list(dict.fromkeys(unique_names_orig[q]))
 
         # For each name in list
         cl_str = ';'.join(unique_names_orig[q])
@@ -257,7 +270,7 @@ def get_matches(
             'pmde': []}
 
         # For each DB
-        for DB_ID, names_db in DB_names_match.items():
+        for DB_ID, fnames_db in DB_fnames.items():
             df = DB_data[DB_ID]
             cols = []
             for v in dbs_used[DB_ID]['pos'].split(','):
@@ -268,14 +281,14 @@ def get_matches(
             ra, de, plx, pmra, pmde = cols[:-1]
 
             # For each name in this list of unique names
-            for name in unique_n:
+            for fname in unique_fn:
                 db_match = False
 
-                # For each name list in this DB
-                for i, name_l in enumerate(names_db):
+                # For each fname list in this DB
+                for i, fname_l in enumerate(fnames_db):
 
-                    # Unique name is in this list of names for this DB
-                    if name in name_l:
+                    # Unique fname is in this list of fnames for this DB
+                    if fname in fname_l:
                         db_match = True
                         cl_dict[cl_str]['DB'].append(DB_ID)
                         cl_dict[cl_str]['DB_i'].append(i)
@@ -286,7 +299,7 @@ def get_matches(
                         cl_dict[cl_str]['RA'].append(row[ra])
                         cl_dict[cl_str]['DE'].append(row[de])
                         if DB_ID == 'KHARCHENKO12':
-                            # This DB has bad data for these params
+                            # This DB has bad data for these parameters
                             continue
                         if plx is not None:
                             cl_dict[cl_str]['plx'].append(row[plx])
@@ -414,7 +427,6 @@ def assign_fname(all_names):
         names_reorder, fnames_reorder = preferred_names(names, fnames_temp)
 
         all_names_reorder.append(";".join(names_reorder))
-        # all_fnames_reorder.append(";".join(fnames_reorder))
         # Remove duplicated before storing
         all_fnames_reorder.append(';'.join(list(dict.fromkeys(
             fnames_reorder))))
@@ -571,7 +583,7 @@ def dups_identify(df, N_dups):
                 dups_fname.append(fname)
 
         if dups_fname:
-            # print(i, df['fnames'][i], len(dups_fname), dups_fname)
+            print(i, df['fnames'][i], len(dups_fname), dups_fname)
             dups_fname = ";".join(dups_fname)
         else:
             dups_fname = 'nan'
@@ -597,8 +609,20 @@ def duplicate_find(d, pm_d, plx_d, plx):
     else:
         rad, plx_r, pm_r = 1, 0.05, 0.1
 
-    if pm_d < pm_r and plx_d < plx_r and d < rad:
-        return True
+    if not np.isnan(plx_d) and not np.isnan(pm_d):
+        if pm_d < pm_r and plx_d < plx_r and d < rad:
+            return True
+    elif not np.isnan(plx_d) and np.isnan(pm_d):
+        if plx_d < plx_r and d < rad:
+            return True
+    elif np.isnan(plx_d):
+        rad, pm_r = 5, 0.5
+        if not np.isnan(pm_d):
+            if pm_d < pm_r and d < rad:
+                return True
+        else:
+            if d < rad:
+                return True
 
     return False
 
