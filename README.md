@@ -88,8 +88,10 @@ I retrieved the data from the HEASARC service selecting all clusters with
 This DB lists the FSR clusters as "FSR XXXX" with leading zeros and the ESO
 clusters as "ESO XXX-XX" with leading zeroes.
 
-vdBergh-Hagen --> VDBH per CDS recommendation
-vdBergh       --> VDB per CDS recommendation
+vdBergh-Hagen --> VDBH per CDS recommendation (added 'vdBergh-Hagen' so that the
+naming isn't lost)
+vdBergh       --> VDB per CDS recommendation (added 'vdBergh' so that the
+naming isn't lost)
 
 
 ### LOKTIN17
@@ -113,7 +115,8 @@ follows:
 "Stephenson1, Del_L"
 ```
 
-VDBergh_Hagen --> VDBH per CDS recommendation
+VDBergh_Hagen --> VDBH per CDS recommendation (added 'vdBergh-Hagen' to 43
+clusters so that the naming isn't lost)
 VDBergh       --> VDB per CDS recommendation
 
 ### CASTRO18
@@ -158,7 +161,8 @@ de Wit 1 --> Wit 1 (to match KHARCHENKO12)
 JS 1 --> Juchert-Saloran 1 (to match KHARCHENKO12)
 ESO 589-26,MW --> ESO 589-26
 Messineo 1,Cl 1813-18,SAI 126, --> Remove comma at the end
-BH       --> VDBH per CDS recommendation
+BH       --> VDBH per CDS recommendation (added 'vdBergh-Hagen' so that the
+naming isn't lost)
 vdBergh  --> VDB per CDS recommendation
 
 This is the only DB that lists the Ryu & Lee (2018) clusters. The original
@@ -370,8 +374,10 @@ objects listed nearby.
 Fixed:
 ESO 589-26,MW --> ESO 589-26 (dragged from BICA19)
 ESO_429-429 --> ESO_429-02 (according to CDS coords)
-BH        --> VDBH per CDS recommendation
-vdBergh_  --> VDB_ per CDS recommendation
+BH        --> VDBH per CDS recommendation (added 'vdBergh-Hagen' so that the
+naming isn't lost)
+vdBergh_  --> VDB_ per CDS recommendation (added 'vdBergh' so that the
+naming isn't lost)
 
 ### QIN23
 Hunting for Neighboring Open Clusters with Gaia DR3: 101 New Open
