@@ -12,25 +12,24 @@ import time as t
 # insert at 1, 0 is the script path (or '' in REPL)
 import sys
 sys.path.insert(1, '/home/gabriel/Github/fastmp/')  # Path to fastMP
-frames_path = '/media/gabriel/backup/gabriel/GaiaDR3/datafiles_G20/'
-comb_DBs = "../../2_pipeline/UCC_cat_20230429.csv"
+GAIADR3_path = '/media/gabriel/backup/gabriel/GaiaDR3/'
+frames_path = GAIADR3_path + 'datafiles_G20/'
+frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
+comb_DBs = "/home/gabriel/Github/web_sites/UCC/datafiles/UCC_cat_20230503.csv"
 
 # # CLUSTER RUN
 # # Path to the database with Gaia DR3 data
-# frames_path = '/home/gperren/GaiaDR3/datafiles_G20/'
+# GAIADR3_path = '/home/gperren/GaiaDR3/'
+# frames_path = GAIADR3_path + 'datafiles_G20/'
+# # File that contains the regions delimited by each frame (in this folder)
+# frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
 # # Full database of clusters (in this folder)
-# comb_DBs = "3_final_DB.csv"
+# comb_DBs = "UCC_cat_20230503.csv"
 
 from fastmp import fastMP
 
-# File that contains the regions delimited by each frame (in this folder)
-frames_ranges = 'frame_ranges.txt'
-
 # Maximum magnitude to retrieve
 max_mag = 20
-
-# Minimum probability to store
-prob_min = 0.5
 
 # Run ID
 run_ID = os.path.basename(__file__).split('.')[0][-1:]
@@ -48,7 +47,6 @@ def main(N_cl_extra=10):
     frames_data, database_full = read_input()
 
     # Parameters used to search for close-by clusters
-    database_fnames = database_full['fname']
     xys = np.array([
         database_full['GLON'].values, database_full['GLAT'].values]).T
     tree = spatial.cKDTree(xys)
@@ -67,29 +65,31 @@ def main(N_cl_extra=10):
     elif run_ID == '5':
         clusters_list = database_full[4*N_r:]
 
-    # # # Full list
-    clusters_list = database_full
+    # # Full list
+    # clusters_list = database_full
     # # Shuffle
     # clusters_list = clusters_list.sample(frac=1).reset_index(drop=True)
 
     for index, cl in clusters_list.iterrows():
 
-        if cl['fname'] not in ('mwsc4688',):
-            continue
-        print("\n" + str(index), cl['fname'], cl['GLON'], cl['GLAT'],
+        # if 'teutschj084364511' not in cl['fnames']:
+        #     continue
+
+        fname0 = cl['fnames'].split(';')[0]
+
+        print("\n" + str(index), fname0, cl['GLON'], cl['GLAT'],
               cl['pmRA'], cl['pmDE'], cl['plx'])
 
         # Get close clusters coords
         centers_ex = get_close_cls(
-            database_full, database_fnames, close_cl_idx, cl['fname'],
-            cl['dups_fnames'])
+            index, database_full, close_cl_idx, cl['dups_fnames'])
 
         # Generate frame
         data = get_frame(frames_path, frames_data, cl)
         # Store full file
-        # data.to_csv(out_path + cl['fname'] + "_full.csv", index=False)
+        # data.to_csv(out_path + fname0 + "_full.csv", index=False)
         # Read from file
-        # data = pd.read_csv(out_path + cl['fname'] + "_full.csv")
+        # data = pd.read_csv(out_path + fname0 + "_full.csv")
 
         # Extract center coordinates
         xy_c, vpd_c, plx_c = (cl['GLON'], cl['GLAT']), None, None
@@ -112,7 +112,7 @@ def main(N_cl_extra=10):
         start = t.time()
         while True:
             print("Fixed centers?:", fixed_centers)
-            probs_all, N_membs = fastMP(
+            probs_all = fastMP(
                 xy_c=xy_c, vpd_c=vpd_c, plx_c=plx_c, centers_ex=centers_ex,
                 fixed_centers=fixed_centers).fit(X)
 
@@ -126,13 +126,13 @@ def main(N_cl_extra=10):
                 fixed_centers = True
 
         bad_center = check_centers(*X[:5, :], xy_c, vpd_c, plx_c, probs_all)
-        print("*** {}: Nmembs={}, P>0.5={}, t={}, cents={}".format(
-              cl['fname'], N_membs, (probs_all > 0.5).sum(),
+        print("*** {}: Nmembs(P>0.5)={}, t={}, cents={}".format(
+              fname0, (probs_all > 0.5).sum(),
               round(t.time() - start, 1), bad_center))
 
         # Write member stars for cluster
-        df = filter_stars_not_used(data, probs_all, N_membs)
-        df.to_csv(out_path + cl['fname'] + ".csv.gz", index=False,
+        df = filter_stars_not_used(data, probs_all)
+        df.to_csv(out_path + fname0 + ".csv.gz", index=False,
                   compression='gzip')
 
 
@@ -201,18 +201,18 @@ def get_frame(frames_path, frames_data, cl):
     return data
 
 
-def get_close_cls(database_full, database_fnames, close_cl_idx, fname, dups):
+def get_close_cls(idx, database_full, close_cl_idx, dups):
     """
     Get data on the closest clusters to the one being processed
+
+    idx: Index to the cluster in the full list
     """
-    # Index to the cluster in the full list
-    idx = database_full.index[database_fnames == fname][0]
     # Indexes to the closest clusters in XY
     ex_cls_idx = close_cl_idx[1][idx][1:]
 
     duplicate_cls = []
     if str(dups) != 'nan':
-        duplicate_cls = dups.split(',')
+        duplicate_cls = dups.split(';')
 
     centers_ex = []
     for i in ex_cls_idx:
@@ -220,8 +220,14 @@ def get_close_cls(database_full, database_fnames, close_cl_idx, fname, dups):
         # Check if this close cluster is identified as a probable duplicate
         # of this cluster. If it is, do not add it to the list of extra
         # clusters in the frame
+        skip_cl = False
         if duplicate_cls:
-            if database_fnames[i] in duplicate_cls:
+            for dup_fname_i in database_full['fnames'][i].split(';'):
+                if dup_fname_i in duplicate_cls:
+                    # print("skip", database_full['fnames'][i])
+                    skip_cl = True
+                    break
+            if skip_cl:
                 continue
 
         ex_cl_dict = {
@@ -317,13 +323,16 @@ def check_centers(
     return bad_center
 
 
-def filter_stars_not_used(data, probs_all, N_membs, prob_min=0):
+def filter_stars_not_used(data, probs_all, prob_min=0):
     """
     """
-    data['probs'] = np.round(probs_all, 3)
+    data['probs'] = np.round(probs_all, 5)
     msk = probs_all >= prob_min
 
     df = data[msk]
+    # Order by probabilities
+    df = df.sort_values('probs', ascending=False)
+
     return df
 
 
