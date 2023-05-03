@@ -15,7 +15,7 @@ Script used to combine all the databases using the clusters' names
 """
 
 dbs_folder = '/home/gabriel/Github/web_sites/UCC/datafiles/'
-DBs_json = "all_dbs.json"
+DBs_json = "databases/all_dbs.json"
 out_path = '../2_pipeline/'
 
 
@@ -539,12 +539,12 @@ def trunc(values, decs=1):
 
 def dup_check(fnames):
     """
-    Check for duplicates in 'names' list
+    Check for duplicates in 'fnames' list
     """
     for i, cl0 in enumerate(fnames):
         for j, cl1 in enumerate(fnames[i + 1:]):
             for cl01 in cl0.split(';'):
-                if cl01 == cl1:
+                if cl01 == cl1.split(';')[0]:
                     print(i, i + 1 + j, cl0, cl1)
                     breakpoint()
                     break
