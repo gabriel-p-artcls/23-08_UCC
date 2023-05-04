@@ -98,6 +98,9 @@ naming isn't lost)
 Updated version of the `homogeneous catalog of open cluster parameters',
 [Loktin & Popova 2017](https://ui.adsabs.harvard.edu/abs/2017AstBu..72..257L/abstract)
 
+Many proper motion values in this Db are very wrong (see e.g: NGC 2516). We
+thus do not use these values in the DB.
+
 Contains 11 clusters with an extra name in parenthesis, these were fixed as
 follows:
 

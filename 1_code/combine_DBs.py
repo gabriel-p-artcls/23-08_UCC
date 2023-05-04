@@ -298,8 +298,8 @@ def get_matches(
                         #     # This DB has bad data for RA
                         cl_dict[cl_str]['RA'].append(row[ra])
                         cl_dict[cl_str]['DE'].append(row[de])
-                        if DB_ID == 'KHARCHENKO12':
-                            # This DB has bad data for these parameters
+                        if DB_ID in ('KHARCHENKO12', 'LOKTIN17'):
+                            # These DBs has bad data for these parameters
                             continue
                         if plx is not None:
                             cl_dict[cl_str]['plx'].append(row[plx])
