@@ -8,24 +8,24 @@ from scipy import spatial
 import main_process_GDR3_query as G3Q
 import time as t
 
-# LOCAL RUN
-# insert at 1, 0 is the script path (or '' in REPL)
-import sys
-sys.path.insert(1, '/home/gabriel/Github/fastmp/')  # Path to fastMP
-GAIADR3_path = '/media/gabriel/backup/gabriel/GaiaDR3/'
-frames_path = GAIADR3_path + 'datafiles_G20/'
-frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
-comb_DBs = "/home/gabriel/Github/web_sites/UCC/datafiles/UCC_cat_20230503.csv"
-
-# # CLUSTER RUN
-# # Path to the database with Gaia DR3 data
-# GAIADR3_path = '/home/gperren/GaiaDR3/'
+# # LOCAL RUN
+# # insert at 1, 0 is the script path (or '' in REPL)
+# import sys
+# sys.path.insert(1, '/home/gabriel/Github/fastmp/')  # Path to fastMP
+# from fastmp import fastMP
+# GAIADR3_path = '/media/gabriel/backup/gabriel/GaiaDR3/'
 # frames_path = GAIADR3_path + 'datafiles_G20/'
-# # File that contains the regions delimited by each frame (in this folder)
 # frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
-# # Full database of clusters (in this folder)
-# comb_DBs = "UCC_cat_20230503.csv"
+# comb_DBs = "/home/gabriel/Github/web_sites/UCC/datafiles/UCC_cat_20230503.csv"
 
+# CLUSTER RUN
+# Path to the database with Gaia DR3 data
+GAIADR3_path = '/home/gperren/GaiaDR3/'
+frames_path = GAIADR3_path + 'datafiles_G20/'
+# File that contains the regions delimited by each frame (in this folder)
+frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
+# Full database of clusters (in this folder)
+comb_DBs = "UCC_cat_20230504.csv"
 from fastmp import fastMP
 
 # Maximum magnitude to retrieve
@@ -72,7 +72,7 @@ def main(N_cl_extra=10):
 
     for index, cl in clusters_list.iterrows():
 
-        # if 'teutschj084364511' not in cl['fnames']:
+        # if 'berkeley26' not in cl['fnames']:
         #     continue
 
         fname0 = cl['fnames'].split(';')[0]
