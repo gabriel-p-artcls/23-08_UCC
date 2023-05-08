@@ -16,7 +16,7 @@ import time as t
 # GAIADR3_path = '/media/gabriel/backup/gabriel/GaiaDR3/'
 # frames_path = GAIADR3_path + 'datafiles_G20/'
 # frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
-# comb_DBs = "/home/gabriel/Github/web_sites/UCC/datafiles/UCC_cat_20230503.csv"
+# comb_DBs = "/home/gabriel/Github/web_sites/UCC/datafiles/UCC_cat_20230507.csv"
 
 # CLUSTER RUN
 # Path to the database with Gaia DR3 data
@@ -25,7 +25,7 @@ frames_path = GAIADR3_path + 'datafiles_G20/'
 # File that contains the regions delimited by each frame (in this folder)
 frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
 # Full database of clusters (in this folder)
-comb_DBs = "UCC_cat_20230504.csv"
+comb_DBs = "UCC_cat_20230508.csv"
 from fastmp import fastMP
 
 # Maximum magnitude to retrieve
@@ -72,7 +72,7 @@ def main(N_cl_extra=10):
 
     for index, cl in clusters_list.iterrows():
 
-        # if 'berkeley26' not in cl['fnames']:
+        # if 'blanco1' not in cl['fnames']:
         #     continue
 
         fname0 = cl['fnames'].split(';')[0]
@@ -131,9 +131,7 @@ def main(N_cl_extra=10):
               round(t.time() - start, 1), bad_center))
 
         # Write member stars for cluster
-        df = filter_stars_not_used(data, probs_all)
-        df.to_csv(out_path + fname0 + ".csv.gz", index=False,
-                  compression='gzip')
+        save_cl_datafile(fname0, data, probs_all)
 
 
 def read_input():
@@ -323,17 +321,39 @@ def check_centers(
     return bad_center
 
 
-def filter_stars_not_used(data, probs_all, prob_min=0):
+def save_cl_datafile(fname0, data, probs_all, prob_min=0.5):
     """
     """
-    data['probs'] = np.round(probs_all, 5)
-    msk = probs_all >= prob_min
+    msk_membs = probs_all > 0.5
+    if msk_membs.sum() < 25:
+        msk_membs = probs_all > 0.
+        if msk_membs.sum() < 25:
+            msk_membs = probs_all >= 0.
 
+    xy = np.array([data['GLON'].values, data['GLAT'].values]).T
+    xy_c = np.nanmedian(xy[msk_membs], 0)
+    xy_dists = spatial.distance.cdist(xy, np.array([xy_c])).T[0]
+    x_dist = abs(xy[:, 0] - xy_c[0])
+    y_dist = abs(xy[:, 1] - xy_c[1])
+
+    # 2x95th percentile XY mask
+    xy_95 = np.percentile(xy_dists[msk_membs], 95)
+    xy_rad = xy_95 * 2
+    msk_rad = (x_dist <= xy_rad) & (y_dist <= xy_rad)
+
+    # Minimum probability mask
+    msk_pmin = probs_all >= prob_min
+
+    # Combine masks with logical OR
+    msk = msk_rad | msk_pmin
+
+    data['probs'] = np.round(probs_all, 5)
     df = data[msk]
     # Order by probabilities
     df = df.sort_values('probs', ascending=False)
 
-    return df
+    df.to_csv(out_path + fname0 + ".csv.gz", index=False,
+              compression='gzip')
 
 
 if __name__ == '__main__':
