@@ -121,6 +121,10 @@ follows:
 VDBergh_Hagen --> VDBH per CDS recommendation (added 'vdBergh-Hagen' to 43
 clusters so that the naming isn't lost)
 VDBergh       --> VDB per CDS recommendation
+Sauer5 --> Saurer 5
+Teusch61 --> Teutsch61
+AlessiJ2327+55 --> Alessi J2327.0+55
+Sigma_Ori --> Sigma_Orionis
 
 ### CASTRO18
 A new method for unveiling open clusters in Gaia. New nearby open
@@ -134,39 +138,40 @@ A Multi-band Catalog of 10978 Star Clusters ... in the Milky Way;
 
 The Vizier table contain 10978 entries. We keep only those with Class1 OC (open
 cluster) or OCC (open cluster candidate); this reduces the list to 3564 entries.
-This DB lists the FSR clusters as "FSR XXX" and the ESO clusters as
-"ESO XXX-XX" with no leading zeroes. I added 'RA_ICRS' and
-'DE_ICRS' columns to math the rest of the DBs.
+Added 'RA_ICRS' and 'DE_ICRS' columns.
 
-The list contains 19 duplicates and one entry where the same name is listed
-twice (MWSC 2776). 
-- For the single entry with the same name listed twice, we remove one of the
-  repeated names.
-- For (FSR 523, FSR 847, FSR 436) we remove the duplicates that showed as
-  single entries
-- ESO 393-3: removed name from both entries (cluster not found in CDS)
-- MWSC 1025, 1482, 948, 3123, 1997, 1840, 442, 1808, 2204: removed name from
-  both entries (clusters not found in KHARCHENKO12)
-- ESO 97-2: removed from Loden 848 as it matches the position of Loden 894
-  according to CDS
-- FSR 972, OCL 344, Collinder 384, FSR 179: removed from both entries, it does
-  not show in CDS or anywhere else
-- MWSC 206: removed entry that also showed FSR 60 as the coordinates for FSR 60
-  are a better match in KHARCHENKO12 for the entry with the single FSR 60 name
+Fixes:
 
-Fixed:
-FSR 429.MWSC 3667 --> FSR 429,MWSC 3667
-Carraro 1.MWSC 1829 --> Carraro 1,MWSC 1829
-Cernik 39 --> "Czernik 39
-FSR343 --> FSR 343
-ESO456-13 --> ESO 456-13
-de Wit 1 --> Wit 1 (to match KHARCHENKO12)
-JS 1 --> Juchert-Saloran 1 (to match KHARCHENKO12)
-ESO 589-26,MW --> ESO 589-26
-Messineo 1,Cl 1813-18,SAI 126, --> Remove comma at the end
-BH       --> VDBH per CDS recommendation (added 'vdBergh-Hagen' so that the
+-MWSC 2776, name listed twice, we remove one of the repeated names.
+-FSR 523, FSR 847, FSR 436; we remove the duplicates that showed as
+single entries
+-ESO 393-3, removed name from both entries (cluster not found in CDS)
+-MWSC 1025, 1482, 948, 3123, 1997, 1840, 442, 1808, 2204: removed name from
+both entries (clusters not found in KHARCHENKO12)
+-ESO 97-2: removed from Loden 848 as it matches the position of Loden 894
+according to CDS
+-FSR 972, OCL 344, Collinder 384, FSR 179: removed from both entries, it does
+not show in CDS or anywhere else
+-MWSC 206: removed entry that also showed FSR 60 as the coordinates for FSR 60
+are a better match in KHARCHENKO12 for the entry with the single FSR 60 name
+-FSR 429.MWSC 3667 --> FSR 429,MWSC 3667
+-Carraro 1.MWSC 1829 --> Carraro 1,MWSC 1829
+-Cernik 39 --> "Czernik 39
+-FSR343 --> FSR 343
+-ESO456-13 --> ESO 456-13
+-de Wit 1 --> Wit 1 (to match KHARCHENKO12)
+-JS 1 --> Juchert-Saloran 1 (to match KHARCHENKO12)
+-ESO 589-26,MW --> ESO 589-26
+-Messineo 1,Cl 1813-18,SAI 126, --> Remove comma at the end
+-BH       --> VDBH per CDS recommendation (added 'vdBergh-Hagen' so that the
 naming isn't lost)
-vdBergh  --> VDB per CDS recommendation
+-vdBergh  --> VDB per CDS recommendation
+-Alessi J2327.6+5535 --> Alessi J2327.0+55
+-TRSG 1 --> RSG 1
+-Added 'Dol-Dzim 9' to 'DoDz 9' to match KHARCHENKO12
+-Added 'Dol-Dzim 11' to 'DoDz 11' to match KHARCHENKO12
+-Removed 'Alessi J0715.6-0722' as it is an OCC and its position matches that of
+'Alessi J0715.6-0727'
 
 This is the only DB that lists the Ryu & Lee (2018) clusters. The original
 article claims to have found 721 new OCs (923 minus 202 embedded). BICA19 (page
@@ -232,6 +237,7 @@ with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
 BH        --> VDBH per CDS recommendation
 vdBergh_  --> VDB per CDS recommendation
 LP_ --> FoF_ to match the original work LIUPANG19
+Sigma_Ori --> Sigma_Orionis
 
 ### HAO20
 Sixteen Open Clusters Discovered with Sample-based Clustering Search of Gaia
@@ -265,6 +271,7 @@ LIUPANG19. Cluster 866 was duplicated so one entry was removed. Changed
 
 BH       --> VDBH per CDS recommendation
 vdBergh  --> VDB per CDS recommendation
+Sigma_Ori --> Sigma_Orionis
 
 This DB contains wrong RA data for several clusters (differences with HAO21:
 `10>1 deg`, `14>0.5 deg`, `86>0.1 deg`)
@@ -381,6 +388,13 @@ BH        --> VDBH per CDS recommendation (added 'vdBergh-Hagen' so that the
 naming isn't lost)
 vdBergh_  --> VDB_ per CDS recommendation (added 'vdBergh' so that the
 naming isn't lost)
+CMa_2 --> CMa_02
+AH03_J0748+26.9 --> AH03_J0748-26.9
+Juchert_J0644.8+0925 --> Juchert_J0644.8-0925
+Teutsch_J0718.0+1642 --> Teutsch_J0718.0-1642
+Teutsch_J0924.3+5313 --> Teutsch_J0924.3-5313
+Teutsch_J1037.3+6034 --> Teutsch_J1037.3-6034
+Teutsch_J1209.3+6120 --> Teutsch_J1209.3-6120
 
 ### QIN23
 Hunting for Neighboring Open Clusters with Gaia DR3: 101 New Open
@@ -477,7 +491,7 @@ After cross-matching the sanitized databases we have:
 KHARCHENKO12 2858
 LOKTIN17 1052
 CASTRO18 23
-BICA19 3560
+BICA19 3559
 CASTRO19 53
 SIM19 204
 LIUPANG19 76
@@ -507,8 +521,8 @@ CHI23_2 46
 CHI23 82
 CHI23_3 1179
 
-24872 clusters in all DBs
-N=14097 unique names identified
+24871 clusters in all DBs
+N=14055 unique names identified
 ```
 
 
