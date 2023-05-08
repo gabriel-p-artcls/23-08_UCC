@@ -15,7 +15,7 @@ data_CG = pd.read_csv(path0)
 
 def main():
     # func1()
-    func2('FSR_0158')
+    func2('FSR_0248')
 
 
 def func1():
