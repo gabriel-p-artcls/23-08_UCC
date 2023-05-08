@@ -112,12 +112,17 @@ def FSR_ESO_rename(name):
     FSR_XXX w leading zeros
     FSR_XXX w/o leading zeros
 
+    --> FSR_XXXX (w leading zeroes)
+
     ESO XXX-YY w leading zeros
     ESO XXX-YY w/o leading zeros
     ESO_XXX_YY w leading zeros
     ESO_XXX_YY w/o leading zeros
     ESO_XXX-YY w leading zeros
     ESO_XXX-YY w/o leading zeros
+    ESOXXX_YY w leading zeros (LOKTIN17)
+
+    --> ESO_XXX_YY (w leading zeroes)
     """
     if name.startswith("FSR"):
         if ' ' in name or '_' in name:
@@ -137,6 +142,10 @@ def FSR_ESO_rename(name):
             name = "FSR_" + n2
 
     if name.startswith("ESO"):
+        if name[:4] not in ('ESO_', 'ESO '):
+            # This is a LOKTIN17 ESO cluster
+            name = 'ESO_' + name[3:]
+
         if ' ' in name[4:]:
             n1, n2 = name[4:].split(' ')
         elif '_' in name[4:]:
@@ -569,21 +578,12 @@ def dups_identify(df, N_dups):
 
         dups_fname = []
         for j in idx:
-            # Angular distance in arcmin (rounded)
-            d = round(angular_separation(x[i], y[i], x[j], y[j]) * 60, 2)
-            # PMs distance
-            pm_d = np.sqrt((pmRA[i]-pmRA[j])**2 + (pmDE[i]-pmDE[j])**2)
-            # Parallax distance
-            plx_d = abs(plx[i] - plx[j])
-
-            dup_flag = duplicate_find(d, pm_d, plx_d, plx[i])
-
-            if dup_flag:
-                fname = df['fnames'][j].split(';')[0]
-                dups_fname.append(fname)
+            if duplicate_find(x, y, pmRA, pmDE, plx, i, j):
+                # Store just the first fname
+                dups_fname.append(df['fnames'][j].split(';')[0])
 
         if dups_fname:
-            print(i, df['fnames'][i], len(dups_fname), dups_fname)
+            # print(i, df['DB'][i], df['fnames'][i], dups_fname)
             dups_fname = ";".join(dups_fname)
         else:
             dups_fname = 'nan'
@@ -593,18 +593,25 @@ def dups_identify(df, N_dups):
     return dups_fnames
 
 
-def duplicate_find(d, pm_d, plx_d, plx):
+def duplicate_find(x, y, pmRA, pmDE, plx, i, j):
     """
     Identify a cluster as a duplicate following an arbitrary definition
     that depends on the parallax
     """
-    if plx >= 4:
+    # Angular distance in arcmin (rounded)
+    d = round(angular_separation(x[i], y[i], x[j], y[j]) * 60, 2)
+    # PMs distance
+    pm_d = np.sqrt((pmRA[i]-pmRA[j])**2 + (pmDE[i]-pmDE[j])**2)
+    # Parallax distance
+    plx_d = abs(plx[i] - plx[j])
+
+    if plx[i] >= 4:
         rad, plx_r, pm_r = 15, 0.5, 1
-    elif 3 <= plx and plx < 4:
+    elif 3 <= plx[i] and plx[i] < 4:
         rad, plx_r, pm_r = 10, 0.25, 0.5
-    elif 2 <= plx and plx < 3:
+    elif 2 <= plx[i] and plx[i] < 3:
         rad, plx_r, pm_r = 5, 0.15, 0.25
-    elif 1 <= plx and plx < 2:
+    elif 1 <= plx[i] and plx[i] < 2:
         rad, plx_r, pm_r = 2.5, 0.1, 0.15
     else:
         rad, plx_r, pm_r = 1, 0.05, 0.1
