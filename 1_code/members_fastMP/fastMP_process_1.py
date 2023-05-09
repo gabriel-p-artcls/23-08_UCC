@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 from scipy import spatial
 import main_process_GDR3_query as G3Q
-import time as t
 
 # LOCAL RUN
 # insert at 1, 0 is the script path (or '' in REPL)
@@ -105,7 +104,6 @@ def run(N_cl_extra=10):
             data['e_pmDE'].values, data['e_Plx'].values])
 
         # Process with fastMP
-        start = t.time()
         while True:
             print("Fixed centers?:", fixed_centers)
             probs_all = fastMP(
@@ -122,9 +120,8 @@ def run(N_cl_extra=10):
                 fixed_centers = True
 
         bad_center = check_centers(*X[:5, :], xy_c, vpd_c, plx_c, probs_all)
-        print("Nmembs(P>0.5)={}, cents={}, t={}".format(
-              (probs_all > 0.5).sum(), bad_center,
-              round(t.time() - start, 1)))
+        print("Nmembs(P>0.5)={}, cents={}".format(
+              (probs_all > 0.5).sum(), bad_center))
 
         # Write member stars for cluster and some field
         save_cl_datafile(cl, data, probs_all)
