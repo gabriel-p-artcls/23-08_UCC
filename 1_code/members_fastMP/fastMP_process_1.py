@@ -8,25 +8,25 @@ from scipy import spatial
 import main_process_GDR3_query as G3Q
 import time as t
 
-# # LOCAL RUN
-# # insert at 1, 0 is the script path (or '' in REPL)
-# import sys
-# sys.path.insert(1, '/home/gabriel/Github/fastmp/')  # Path to fastMP
-# from fastmp import fastMP
-# GAIADR3_path = '/media/gabriel/backup/gabriel/GaiaDR3/'
-# frames_path = GAIADR3_path + 'datafiles_G20/'
-# frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
-# comb_DBs = "/home/gabriel/Github/web_sites/UCC/datafiles/UCC_cat_20230507.csv"
-
-# CLUSTER RUN
-# Path to the database with Gaia DR3 data
-GAIADR3_path = '/home/gperren/GaiaDR3/'
-frames_path = GAIADR3_path + 'datafiles_G20/'
-# File that contains the regions delimited by each frame (in this folder)
-frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
-# Full database of clusters (in this folder)
-comb_DBs = "UCC_cat_20230508.csv"
+# LOCAL RUN
+# insert at 1, 0 is the script path (or '' in REPL)
+import sys
+sys.path.insert(1, '/home/gabriel/Github/fastmp/')
 from fastmp import fastMP
+GAIADR3_path = '/media/gabriel/backup/gabriel/GaiaDR3/'
+frames_path = GAIADR3_path + 'datafiles_G20/'
+frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
+UCC_cat = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230508.csv"
+
+# # CLUSTER RUN
+# # Path to the database with Gaia DR3 data
+# GAIADR3_path = '/home/gperren/GaiaDR3/'
+# frames_path = GAIADR3_path + 'datafiles_G20/'
+# # File that contains the regions delimited by each frame (in this folder)
+# frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
+# # Full database of clusters (in this folder)
+# UCC_cat = "UCC_cat_20230508.csv"
+# from fastmp import fastMP
 
 # Maximum magnitude to retrieve
 max_mag = 20
@@ -39,12 +39,12 @@ Path(f"out_{run_ID}").mkdir(parents=True, exist_ok=True)
 out_path = f"out_{run_ID}/"
 
 
-def main(N_cl_extra=10):
+def run(N_cl_extra=10):
     """
     N_cl_extra: number of extra clusters in frame to detect
     """
     # Read data
-    frames_data, database_full = read_input()
+    frames_data, database_full = read_input(frames_ranges, UCC_cat)
 
     # Parameters used to search for close-by clusters
     xys = np.array([
@@ -64,21 +64,16 @@ def main(N_cl_extra=10):
         clusters_list = database_full[3*N_r:4*N_r]
     elif run_ID == '5':
         clusters_list = database_full[4*N_r:]
-
     # # Full list
     # clusters_list = database_full
-    # # Shuffle
-    # clusters_list = clusters_list.sample(frac=1).reset_index(drop=True)
 
     for index, cl in clusters_list.iterrows():
 
-        # if 'blanco1' not in cl['fnames']:
+        # if 'saurer1' not in cl['fnames']:
         #     continue
+        breakpoint()
 
-        fname0 = cl['fnames'].split(';')[0]
-
-        print("\n" + str(index), fname0, cl['GLON'], cl['GLAT'],
-              cl['pmRA'], cl['pmDE'], cl['plx'])
+        print(f"*** Processing {cl['ID']} with fastMP...")
 
         # Get close clusters coords
         centers_ex = get_close_cls(
@@ -86,6 +81,7 @@ def main(N_cl_extra=10):
 
         # Generate frame
         data = get_frame(frames_path, frames_data, cl)
+        # fname0 = cl['fnames'].split(';')[0]
         # Store full file
         # data.to_csv(out_path + fname0 + "_full.csv", index=False)
         # Read from file
@@ -126,20 +122,21 @@ def main(N_cl_extra=10):
                 fixed_centers = True
 
         bad_center = check_centers(*X[:5, :], xy_c, vpd_c, plx_c, probs_all)
-        print("*** {}: Nmembs(P>0.5)={}, t={}, cents={}".format(
-              fname0, (probs_all > 0.5).sum(),
-              round(t.time() - start, 1), bad_center))
+        print("Nmembs(P>0.5)={}, cents={}, t={}".format(
+              (probs_all > 0.5).sum(), bad_center,
+              round(t.time() - start, 1)))
 
-        # Write member stars for cluster
-        save_cl_datafile(fname0, data, probs_all)
+        # Write member stars for cluster and some field
+        save_cl_datafile(cl, data, probs_all)
+        print(f"*** Cluster {cl['ID']} processed with fastMP")
 
 
-def read_input():
+def read_input(frames_ranges, UCC_cat):
     """
     Read input file with the list of clusters to process
     """
     frames_data = pd.read_csv(frames_ranges)
-    database_full = pd.read_csv(comb_DBs)
+    database_full = pd.read_csv(UCC_cat)
     return frames_data, database_full
 
 
@@ -321,14 +318,17 @@ def check_centers(
     return bad_center
 
 
-def save_cl_datafile(fname0, data, probs_all, prob_min=0.5):
+def save_cl_datafile(cl, data, probs_all, prob_min=0.5, N_membs_min=25):
     """
     """
+    fname0 = cl['fnames'].split(';')[0]
+
     msk_membs = probs_all > 0.5
-    if msk_membs.sum() < 25:
-        msk_membs = probs_all > 0.
-        if msk_membs.sum() < 25:
-            msk_membs = probs_all >= 0.
+    if msk_membs.sum() < N_membs_min:
+        # Select the 'N_membs_min' stars with the largest probabilities
+        idx = np.argsort(probs_all)[::-1][:N_membs_min]
+        msk_membs = np.full(len(probs_all), False)
+        msk_membs[idx] = True
 
     xy = np.array([data['GLON'].values, data['GLAT'].values]).T
     xy_c = np.nanmedian(xy[msk_membs], 0)
@@ -357,4 +357,4 @@ def save_cl_datafile(fname0, data, probs_all, prob_min=0.5):
 
 
 if __name__ == '__main__':
-    main()
+    run()
