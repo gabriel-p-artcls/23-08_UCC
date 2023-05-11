@@ -14,7 +14,7 @@ import astropy.units as u
 Script used to combine all the databases using the clusters' names
 """
 
-dbs_folder = '/home/gabriel/Github/web_sites/UCC/datafiles/'
+dbs_folder = '/home/gabriel/Github/UCC/add_New_DB/'
 DBs_json = "databases/all_dbs.json"
 out_path = '../2_pipeline/'
 
@@ -51,6 +51,10 @@ def main(sep=',', N_dups=10):
 
     print(f"Finding duplicates (max={N_dups})...")
     comb_dbs['dups_fnames'] = dups_identify(comb_dbs, N_dups)
+
+    # Add empty columns used later by the 'fastMP_process' scripts
+    comb_dbs['Nmembs'] = [np.nan for _ in range(len(comb_dbs['ID']))]
+    comb_dbs['fixed_cent'] = [np.nan for _ in range(len(comb_dbs['ID']))]
 
     # Save to file
     d = datetime.datetime.now()
