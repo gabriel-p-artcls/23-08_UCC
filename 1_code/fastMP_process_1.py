@@ -1,6 +1,8 @@
 
 import os
-from astropy.coordinates import angular_separation
+# from astropy import units as u
+# from astropy.coordinates import angular_separation
+import csv
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -15,7 +17,8 @@ from fastmp import fastMP
 GAIADR3_path = '/media/gabriel/backup/gabriel/GaiaDR3/'
 frames_path = GAIADR3_path + 'datafiles_G20/'
 frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
-UCC_cat = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230508.csv"
+UCC_cat = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230511.csv"
+GCs_cat = "/home/gabriel/Github/UCC/add_New_DB/databases/globulars.csv"
 
 # # CLUSTER RUN
 # # Path to the database with Gaia DR3 data
@@ -24,7 +27,8 @@ UCC_cat = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230508.csv"
 # # File that contains the regions delimited by each frame (in this folder)
 # frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
 # # Full database of clusters (in this folder)
-# UCC_cat = "UCC_cat_20230508.csv"
+# UCC_cat = "UCC_cat_20230509.csv"
+# GCs_cat = "globulars.csv"
 # from fastmp import fastMP
 
 # Maximum magnitude to retrieve
@@ -43,40 +47,47 @@ def run(N_cl_extra=10):
     N_cl_extra: number of extra clusters in frame to detect
     """
     # Read data
-    frames_data, database_full = read_input(frames_ranges, UCC_cat)
+    frames_data, df_UCC, df_gcs = read_input(frames_ranges, UCC_cat, GCs_cat)
 
     # Parameters used to search for close-by clusters
     xys = np.array([
-        database_full['GLON'].values, database_full['GLAT'].values]).T
+        df_UCC['GLON'].values, df_UCC['GLAT'].values]).T
     tree = spatial.cKDTree(xys)
     close_cl_idx = tree.query(xys, k=N_cl_extra + 1)
 
     # Split into 5 jobs
-    N_r = int(len(database_full) / 5.)
+    N_r = int(len(df_UCC) / 5.)
     if run_ID == '1':
-        clusters_list = database_full[:N_r]
+        clusters_list = df_UCC[:N_r]
     elif run_ID == '2':
-        clusters_list = database_full[N_r:2*N_r]
+        clusters_list = df_UCC[N_r:2*N_r]
     elif run_ID == '3':
-        clusters_list = database_full[2*N_r:3*N_r]
+        clusters_list = df_UCC[2*N_r:3*N_r]
     elif run_ID == '4':
-        clusters_list = database_full[3*N_r:4*N_r]
+        clusters_list = df_UCC[3*N_r:4*N_r]
     elif run_ID == '5':
-        clusters_list = database_full[4*N_r:]
+        clusters_list = df_UCC[4*N_r:]
     # # Full list
-    # clusters_list = database_full
+    clusters_list = df_UCC
 
+    jj = 0
+
+    index_all, N_survived_all, fixed_centers_all = [], [], []
     for index, cl in clusters_list.iterrows():
 
-        # if 'saurer1' not in cl['fnames']:
-        #     continue
-        breakpoint()
+        if 'fsr' not in cl['fnames']:
+            continue
+        if jj > 2:
+            break
+        jj += 1
+        index_all.append(index)
 
         print(f"*** Processing {cl['ID']} with fastMP...")
+        print(cl['fnames'].split(';')[0], cl['GLON'], cl['GLAT'], cl['pmRA'], cl['pmDE'], cl['plx'])
 
         # Get close clusters coords
         centers_ex = get_close_cls(
-            index, database_full, close_cl_idx, cl['dups_fnames'])
+            index, df_UCC, close_cl_idx, cl['dups_fnames'], df_gcs)
 
         # Generate frame
         data = get_frame(frames_path, frames_data, cl)
@@ -106,7 +117,7 @@ def run(N_cl_extra=10):
         # Process with fastMP
         while True:
             print("Fixed centers?:", fixed_centers)
-            probs_all = fastMP(
+            probs_all, N_survived = fastMP(
                 xy_c=xy_c, vpd_c=vpd_c, plx_c=plx_c, centers_ex=centers_ex,
                 fixed_centers=fixed_centers).fit(X)
 
@@ -119,22 +130,33 @@ def run(N_cl_extra=10):
                 # print("Re-run with fixed_centers = True")
                 fixed_centers = True
 
+        N_survived_all.append(N_survived)
+        fixed_centers_all.append(fixed_centers)
+
         bad_center = check_centers(*X[:5, :], xy_c, vpd_c, plx_c, probs_all)
-        print("Nmembs(P>0.5)={}, cents={}".format(
-              (probs_all > 0.5).sum(), bad_center))
+        print("Nsurv={}, Nmembs(P>0.5)={}, cents={}".format(
+              N_survived, (probs_all > 0.5).sum(), bad_center))
 
         # Write member stars for cluster and some field
         save_cl_datafile(cl, data, probs_all)
-        print(f"*** Cluster {cl['ID']} processed with fastMP")
+        print(f"*** Cluster {cl['ID']} processed with fastMP\n")
+
+    # Update these values for all the processed clusters
+    for i, idx in enumerate(index_all):
+        df_UCC.at[idx, 'Nmembs'] = int(N_survived_all[i])
+        df_UCC.at[idx, 'fixed_cent'] = fixed_centers_all[i]
+    df_UCC.to_csv(UCC_cat, na_rep='nan', index=False,
+                  quoting=csv.QUOTE_NONNUMERIC)
 
 
-def read_input(frames_ranges, UCC_cat):
+def read_input(frames_ranges, UCC_cat, GCs_cat):
     """
     Read input file with the list of clusters to process
     """
     frames_data = pd.read_csv(frames_ranges)
-    database_full = pd.read_csv(UCC_cat)
-    return frames_data, database_full
+    df_UCC = pd.read_csv(UCC_cat)
+    df_gcs = pd.read_csv(GCs_cat)
+    return frames_data, df_UCC, df_gcs
 
 
 def get_frame(frames_path, frames_data, cl):
@@ -193,7 +215,7 @@ def get_frame(frames_path, frames_data, cl):
     return data
 
 
-def get_close_cls(idx, database_full, close_cl_idx, dups):
+def get_close_cls(idx, database_full, close_cl_idx, dups, df_gcs):
     """
     Get data on the closest clusters to the one being processed
 
@@ -242,6 +264,15 @@ def get_close_cls(idx, database_full, close_cl_idx, dups):
 
         centers_ex.append(ex_cl_dict)
 
+    # Add closest GC
+    x, y = database_full['GLON'][idx], database_full['GLAT'][idx]
+    gc_i = np.argmin((x-df_gcs['GLON'])**2 + (y-df_gcs['GLAT'])**2)
+    ex_cl_dict = {'xy': [df_gcs['GLON'][gc_i], df_gcs['GLAT'][gc_i]],
+                  'pms': [df_gcs['pmRA'][gc_i], df_gcs['pmDE'][gc_i]],
+                  'plx': [df_gcs['plx'][gc_i]]}
+    # print(df_gcs['Name'][gc_i], ex_cl_dict)
+    centers_ex.append(ex_cl_dict)
+
     return centers_ex
 
 
@@ -265,7 +296,10 @@ def check_centers(
     bad_center_xy, bad_center_pm, bad_center_plx = '0', '0', '0'
 
     # 5 arcmin maximum
-    d_arcmin = angular_separation(xy_c_f[0], xy_c_f[1], xy_c[0], xy_c[1]) * 60
+    # d_arcmin = angular_separation(
+    #     xy_c_f[0]*u.deg, xy_c_f[1]*u.deg, xy_c[0]*u.deg,
+    #     xy_c[1]*u.deg).to('deg').value * 60
+    d_arcmin = np.sqrt((xy_c_f[0]-xy_c[0])**2+(xy_c_f[1]-xy_c[1])**2) * 60
     if d_arcmin > 5:
         # print("d_arcmin: {:.1f}".format(d_arcmin))
         # print(xy_c, xy_c_f)
