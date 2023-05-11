@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-clpath = "/home/gabriel/Descargas/out_1/"
-final_dbs_path = "../2_pipeline/3_final_DB.csv"
-hunt23_DB_path = "/home/gabriel/Github/web_sites/UCC/datafiles/databases/HUNT23.csv"
+clpath = "/home/gabriel/Descargas/datafiles/"
+final_dbs_path = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230509.csv"
+hunt23_DB_path = "/home/gabriel/Github/UCC/add_New_DB/databases/HUNT23.csv"
 hunt23_membs_path = "../0_data/hunt23_members.csv.gz"
 
 # import os
@@ -27,48 +27,40 @@ def main():
     hunt23_names = hunt23_membs['name']
     hunt23_mag = hunt23_membs['phot_g_mean_mag']
 
-    cluster_plot(hunt23_membs, "Blanco_1", "")
+    cluster_plot(hunt23_membs, "HSC_46", "")
     breakpoint()
 
     final_db = pd.read_csv(final_dbs_path)
     hunt23_DB = pd.read_csv(hunt23_DB_path)
-    hunt23_DB_names = [_.replace('_', '').replace(' ', '').replace(
-        '-', '').lower() for _ in hunt23_DB['name']]
 
     print("Processing clusters...")
     ours_hist, hunt23_hist, match_hist = [np.zeros(14) for _ in range(3)]
-    for i, cl in enumerate(final_db['fnames']):
+    for i, row in final_db.iterrows():
 
-        # if cl != 'ngc2516':
-        #     continue
-        # if i > 500:
-        #     break
-
-        if '26' not in final_db['DB'][i]:
+        if 'HUNT23' not in row['DB']:
             continue
-
-        j = -1
-        for name in final_db['ID'][i].split(','):
-            name = name.replace(
-                '_', '').replace(' ', '').replace('-', '').lower()
-            try:
-                j = hunt23_DB_names.index(name)
-            except ValueError:
-                pass
-        if j >= 0:
-            hunt23_name = hunt23_DB['name'][j]
-        else:
-            print(f"Could not find {cl} in HUNT23")
+        fname0 = row['fnames'].split(';')[0]
 
         # Read fastMP data for this cluster
         try:
-            # cl_d = pd.read_csv(clpath + cl + '.csv.gz')
-            cl_d = pd.read_csv(clpath + cl + '.csv')
+            Qfold = QXY_fold(row)
+            cl_d = pd.read_csv(clpath + Qfold + '/' + fname0 + '.csv.gz')
+            probs = cl_d['probs'].values
+            msk = probs > 0.5
+            if msk.sum() < 25:
+                # Select the 'N_membs_min' stars with the largest probabilities
+                idx = np.argsort(probs)[::-1][:25]
+                msk = np.full(len(probs), False)
+                msk[idx] = True
+            cl_d = cl_d[msk]
         except:
-            print(f"Could not find {cl} gz file")
+            print(f"Could not find {Qfold}/{fname0}.csv.gz file")
             continue
 
-        print(i, cl)
+        dbs_idx = row['DB_i'].split(';')
+        h23_j = row['DB'].split(';').index('HUNT23')
+        hunt23_idx = int(dbs_idx[h23_j])
+        hunt23_name = hunt23_DB['name'][hunt23_idx]
 
         # Identify the members for this cluster in HUBT23
         msk = hunt23_names == hunt23_name
@@ -88,13 +80,19 @@ def main():
         # idx2 = np.where(np.isin(hunt23_ids[msk], cl_d['Source']))[0]
         # hunt23_gmag[idx2]
         match_hist += np.histogram(match_gmag, bins=range(6, 21))[0]
-        
+
+        N_ours, N_hunt = ours_gmag.size, hunt23_gmag.size
+        print("{},{},{},{},{}".format(
+            i, fname0, N_ours, N_hunt, round((N_ours - N_hunt)/N_ours, 3)))
+
+    breakpoint()        
     x = np.arange(6.5, 20.5, 1)
     plt.subplot(121)
     plt.plot(x, match_hist/ours_hist, c='b')
     plt.plot(x, match_hist/hunt23_hist, c='r')
     ax = plt.subplot(122)
-    plt.plot(x, (ours_hist - hunt23_hist) / ours_hist.sum(), marker='o')
+    plt.plot(x, (ours_hist - hunt23_hist) / ours_hist, marker='o', c='b')
+    plt.plot(x, (ours_hist - hunt23_hist) / hunt23_hist, marker='o', c='r')
     # ax.set_yscale('log')
     plt.show()
 
@@ -126,6 +124,34 @@ def cluster_plot(df, clname1, clname2):
     plt.scatter(clust2['bp_rp'], clust2['phot_g_mean_mag'], alpha=.5)
     plt.gca().invert_yaxis()
     plt.show()
+
+
+def QXY_fold(cl):
+    """
+    """
+    UCC_ID = cl['UCC_ID']
+    lonlat = UCC_ID.split('G')[1]
+    lon = float(lonlat[:5])
+    try:
+        lat = float(lonlat[5:])
+    except ValueError:
+        lat = float(lonlat[5:-1])
+
+    Qfold = "Q"
+    if lon >= 0 and lon < 90:
+        Qfold += "1"
+    elif lon >= 90 and lon < 180:
+        Qfold += "2"
+    elif lon >= 180 and lon < 270:
+        Qfold += "3"
+    elif lon >= 270 and lon < 3600:
+        Qfold += "4"
+    if lat >= 0:
+        Qfold += 'P'
+    else:
+        Qfold += "N"
+
+    return Qfold
 
 
 if __name__ == '__main__':
