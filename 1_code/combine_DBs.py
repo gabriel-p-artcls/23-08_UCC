@@ -4,11 +4,9 @@ import numpy as np
 import json
 import csv
 import pandas as pd
-from string import ascii_lowercase
-from scipy.spatial.distance import cdist
-from astropy.coordinates import SkyCoord
-from astropy.coordinates import angular_separation
-import astropy.units as u
+import sys
+sys.path.insert(1, '/home/gabriel/Github/UCC/add_New_DB/modules/')
+import DBs_combine
 
 """
 Script used to combine all the databases using the clusters' names
@@ -16,11 +14,13 @@ Script used to combine all the databases using the clusters' names
 
 dbs_folder = '/home/gabriel/Github/UCC/add_New_DB/'
 DBs_json = "databases/all_dbs.json"
-out_path = '../2_pipeline/'
 
 
 def main(sep=',', N_dups=10):
     """
+
+    sep: default character assumed to be used by all DBs to separate between
+    different names for the same cluster
     """
     with open(dbs_folder + DBs_json) as f:
         dbs_used = json.load(f)
@@ -39,28 +39,38 @@ def main(sep=',', N_dups=10):
     print("Generating combined catalogue...")
     comb_dbs = combine_DBs(cl_dict)
 
-    print("Remove duplicate names...")
-    comb_dbs['ID'] = rm_dup_names(comb_dbs['ID'])
+    # print("Remove duplicate names...")
+    # comb_dbs['ID'] = rm_dup_names(comb_dbs['ID'])
 
     print("Assign fnames...")
     comb_dbs['ID'], comb_dbs['fnames'] = assign_fname(comb_dbs['ID'])
     dup_check(comb_dbs['fnames'])
 
     print("Assign UCC IDs...")
-    comb_dbs['UCC_ID'] = assign_UCC_ids(comb_dbs['GLON'], comb_dbs['GLAT'])
+    ucc_ids = []
+    for i, glon in enumerate(comb_dbs['GLON']):
+        glat = comb_dbs['GLAT'][i]
+        ucc_ids.append(DBs_combine.assign_UCC_ids(glon, glat, ucc_ids))
+    comb_dbs['UCC_ID'] = ucc_ids
 
     print(f"Finding duplicates (max={N_dups})...")
-    comb_dbs['dups_fnames'] = dups_identify(comb_dbs, N_dups)
+    comb_dbs['dups_fnames'] = DBs_combine.dups_identify(
+        comb_dbs, N_dups, False)
+    comb_dbs['dups_pm_plx'] = DBs_combine.dups_identify(comb_dbs, N_dups, True)
 
     # Add empty columns used later by the 'fastMP_process' scripts
+    comb_dbs['r_50'] = [np.nan for _ in range(len(comb_dbs['ID']))]
     comb_dbs['Nmembs'] = [np.nan for _ in range(len(comb_dbs['ID']))]
     comb_dbs['fixed_cent'] = [np.nan for _ in range(len(comb_dbs['ID']))]
+    comb_dbs['cent_flags'] = [np.nan for _ in range(len(comb_dbs['ID']))]
+    comb_dbs['C1'] = [np.nan for _ in range(len(comb_dbs['ID']))]
+    comb_dbs['C2'] = [np.nan for _ in range(len(comb_dbs['ID']))]
 
     # Save to file
     d = datetime.datetime.now()
     date = d.strftime('%Y%m%d')
     pd.DataFrame(comb_dbs).to_csv(
-        out_path + 'UCC_cat_' + date + '.csv', na_rep='nan', index=False,
+        dbs_folder + 'UCC_cat_' + date + '.csv', na_rep='nan', index=False,
         quoting=csv.QUOTE_NONNUMERIC)
     print("\nFinal database written to file")
 
@@ -91,8 +101,8 @@ def get_data_and_names(dbs_used, sep):
             names_s = names.split(sep)
             for name in names_s:
                 name = name.strip()
-                name = FSR_ESO_rename(name)
-                names_l.append(rm_chars_from_name(name))
+                name = DBs_combine.rename_standard(name)
+                names_l.append(DBs_combine.rm_chars_from_name(name))
                 names_l_orig.append(name)
 
             names_final.append(names_l)
@@ -105,85 +115,6 @@ def get_data_and_names(dbs_used, sep):
     print(f"\nN={N_all} clusters in all DBs")
 
     return DB_data, DB_fnames, DB_names_orig
-
-
-def FSR_ESO_rename(name):
-    """
-    Standardize the naming of these clusters watching for 
-
-    FSR XXX w leading zeros
-    FSR XXX w/o leading zeros
-    FSR_XXX w leading zeros
-    FSR_XXX w/o leading zeros
-
-    --> FSR_XXXX (w leading zeroes)
-
-    ESO XXX-YY w leading zeros
-    ESO XXX-YY w/o leading zeros
-    ESO_XXX_YY w leading zeros
-    ESO_XXX_YY w/o leading zeros
-    ESO_XXX-YY w leading zeros
-    ESO_XXX-YY w/o leading zeros
-    ESOXXX_YY w leading zeros (LOKTIN17)
-
-    --> ESO_XXX_YY (w leading zeroes)
-    """
-    if name.startswith("FSR"):
-        if ' ' in name or '_' in name:
-            if '_' in name:
-                n2 = name.split('_')[1]
-            else:
-                n2 = name.split(' ')[1]
-            n2 = int(n2)
-            if n2 < 10:
-                n2 = '000' + str(n2)
-            elif n2 < 100:
-                n2 = '00' + str(n2)
-            elif n2 < 1000:
-                n2 = '0' + str(n2)
-            else:
-                n2 = str(n2)
-            name = "FSR_" + n2
-
-    if name.startswith("ESO"):
-        if name[:4] not in ('ESO_', 'ESO '):
-            # This is a LOKTIN17 ESO cluster
-            name = 'ESO_' + name[3:]
-
-        if ' ' in name[4:]:
-            n1, n2 = name[4:].split(' ')
-        elif '_' in name[4:]:
-            n1, n2 = name[4:].split('_')
-        elif '' in name[4:]:
-            n1, n2 = name[4:].split('-')
-
-        n1 = int(n1)
-        if n1 < 10:
-            n1 = '00' + str(n1)
-        elif n1 < 100:
-            n1 = '0' + str(n1)
-        else:
-            n1 = str(n1)
-        n2 = int(n2)
-        if n2 < 10:
-            n2 = '0' + str(n2)
-        else:
-            n2 = str(n2)
-        name = "ESO_" + n1 + '_' + n2
-
-    return name
-
-
-def rm_chars_from_name(name):
-    """
-    """
-    # name = name.lower().replace('_', '').replace(
-    #     ' ', '').replace('-', '').replace("'", '')
-    # We replace '+' with 'p' to avoid duplicating names for clusters
-    # like 'Juchert J0644.8-0925' and 'Juchert_J0644.8+0925'
-    name = name.lower().replace('_', '').replace(' ', '').replace(
-        '-', '').replace('.', '').replace("'", '').replace('+', 'p')
-    return name
 
 
 def get_unique_names(DB_fnames, DB_names_orig):
@@ -262,22 +193,11 @@ def get_matches(
     cl_dict = {}
     # For each list of unique fnames
     for q, unique_fn in enumerate(unique_fnames):
-
         # Remove duplicates of the kind: Berkeley 102, Berkeley102,
         # Berkeley_102; keeping only the name with the space
-        for i, n in enumerate(unique_names_orig[q]):
-            n2 = n.replace(' ', '')
-            if n2 in unique_names_orig[q]:
-                j = unique_names_orig[q].index(n2)
-                unique_names_orig[q][j] = n
-            n2 = n.replace(' ', '_')
-            if n2 in unique_names_orig[q]:
-                j = unique_names_orig[q].index(n2)
-                unique_names_orig[q][j] = n
-        unique_names_orig[q] = list(dict.fromkeys(unique_names_orig[q]))
+        cl_str = DBs_combine.rm_name_dups(unique_names_orig[q])
 
         # For each name in list
-        cl_str = ';'.join(unique_names_orig[q])
         cl_dict[cl_str] = {
             'DB': [], 'DB_i': [], 'RA': [], 'DE': [], 'plx': [], 'pmra': [],
             'pmde': []}
@@ -351,7 +271,7 @@ def combine_DBs(cl_dict):
         ra_l.append(round(ra_m, 5))
         dec_l.append(round(dec_m, 5))
 
-        lon, lat = radec2lonlat(ra_m, dec_m)
+        lon, lat = DBs_combine.radec2lonlat(ra_m, dec_m)
         glon_l.append(lon)
         glat_l.append(lat)
 
@@ -383,48 +303,6 @@ def combine_DBs(cl_dict):
     return comb_dbs
 
 
-def radec2lonlat(ra, dec):
-    gc = SkyCoord(ra=ra * u.degree, dec=dec * u.degree)
-    lb = gc.transform_to('galactic')
-    lon, lat = lb.l.value, lb.b.value
-    return np.round(lon, 5), np.round(lat, 5)
-
-
-def rm_dup_names(all_names):
-    """
-    This removes duplicates such as "NGC_2516" and "NGC 2516", "UBC 123" and
-    "UBC123" and "OC-4567" and "OC 4567"
-    """
-    no_dup_names = []
-    for names in all_names:
-        names = names.split(';')
-        names_temp = []
-        for name in names:
-            name = name.strip()
-            if 'UBC' in name and 'UBC ' not in name and 'UBC_' not in name:
-                name = name.replace('UBC', 'UBC ')
-            if 'UBC_' in name:
-                name = name.replace('UBC_', 'UBC ')
-
-            if 'UFMG' in name and 'UFMG ' not in name and 'UFMG_' not in name:
-                name = name.replace('UFMG', 'UFMG ')
-
-            if 'LISC' in name and 'LISC ' not in name and 'LISC_' not in name\
-                    and 'LISC-' not in name:
-                name = name.replace('LISC', 'LISC ')
-
-            if 'OC-' in name:
-                name = name.replace('OC-', 'OC ')
-            # Removes duplicates such as "NGC_2516" and "NGC 2516" 
-            name = name.replace('_', ' ')
-            names_temp.append(name)
-
-        # Equivalent to set() but maintains order
-        no_dup_names.append(';'.join(list(dict.fromkeys(names_temp))))
-
-    return no_dup_names
-
-
 def assign_fname(all_names):
     """
     The first entry in 'all_fnames_reorder' is used for files and urls
@@ -435,7 +313,7 @@ def assign_fname(all_names):
         fnames_temp = []
         for i, name in enumerate(names):
             name = name.strip()
-            fnames_temp.append(rm_chars_from_name(name))
+            fnames_temp.append(DBs_combine.rm_chars_from_name(name))
 
         names_reorder, fnames_reorder = preferred_names(names, fnames_temp)
 
@@ -495,61 +373,6 @@ def preferred_names(names, fnames):
     return names_reorder, fnames_reorder
 
 
-def assign_UCC_ids(glon, glat):
-    """
-    Format: UCC GXXX.X+YY.Y
-    """
-    lonlat = np.array([glon, glat]).T
-    lonlat = trunc(lonlat)
-    
-    ucc_ids = []
-    for idx, ll in enumerate(lonlat):
-        lon, lat = str(ll[0]), str(ll[1])
-
-        if ll[0] < 10:
-            lon = '00' + lon
-        elif ll[0] < 100:
-            lon = '0' + lon
-
-        if ll[1] >= 10:
-            lat = '+' + lat
-        elif ll[1] < 10 and ll[1] > 0:
-            lat = '+0' + lat
-        elif ll[1] == 0:
-            lat = '+0' + lat.replace('-', '')
-        elif ll[1] < 0 and ll[1] >= -10:
-            lat = '-0' + lat[1:]
-        elif ll[1] < -10:
-            pass
-
-        ucc_id = 'UCC G' + lon + lat
-
-        i = 0
-        while True:
-            if i > 25:
-                ucc_id += "ERROR"
-                print("ERROR NAMING")
-                break
-            if ucc_id in ucc_ids:
-                if i == 0:
-                    # Add a letter to the end
-                    ucc_id += ascii_lowercase[i]
-                else:
-                    # Replace last letter
-                    ucc_id = ucc_id[:-1] + ascii_lowercase[i]
-                i += 1
-            else:
-                break
-
-        ucc_ids.append(ucc_id)
-
-    return ucc_ids
-
-
-def trunc(values, decs=1):
-    return np.trunc(values*10**decs)/(10**decs)
-
-
 def dup_check(fnames):
     """
     Check for duplicates in 'fnames' list
@@ -561,81 +384,6 @@ def dup_check(fnames):
                     print(i, i + 1 + j, cl0, cl1)
                     breakpoint()
                     break
-
-
-def dups_identify(df, N_dups):
-    """
-    Find the closest clusters to all clusters
-    """
-    x, y = df['GLON'], df['GLAT']
-    pmRA, pmDE, plx = df['pmRA'], df['pmDE'], df['plx']
-    coords = np.array([x, y]).T
-    # Find the distances to all clusters, for all clusters
-    dist = cdist(coords, coords)
-    # Change distance to itself from 0 to inf
-    msk = dist == 0.
-    dist[msk] = np.inf
-
-    dups_fnames = []
-    for i, cl in enumerate(dist):
-        idx = np.argsort(cl)[:N_dups]
-
-        dups_fname = []
-        for j in idx:
-            if duplicate_find(x, y, pmRA, pmDE, plx, i, j):
-                # Store just the first fname
-                dups_fname.append(df['fnames'][j].split(';')[0])
-
-        if dups_fname:
-            # print(i, df['DB'][i], df['fnames'][i], dups_fname)
-            dups_fname = ";".join(dups_fname)
-        else:
-            dups_fname = 'nan'
-
-        dups_fnames.append(dups_fname)
-
-    return dups_fnames
-
-
-def duplicate_find(x, y, pmRA, pmDE, plx, i, j):
-    """
-    Identify a cluster as a duplicate following an arbitrary definition
-    that depends on the parallax
-    """
-    # Angular distance in arcmin (rounded)
-    d = round(angular_separation(x[i], y[i], x[j], y[j]) * 60, 2)
-    # PMs distance
-    pm_d = np.sqrt((pmRA[i]-pmRA[j])**2 + (pmDE[i]-pmDE[j])**2)
-    # Parallax distance
-    plx_d = abs(plx[i] - plx[j])
-
-    if plx[i] >= 4:
-        rad, plx_r, pm_r = 15, 0.5, 1
-    elif 3 <= plx[i] and plx[i] < 4:
-        rad, plx_r, pm_r = 10, 0.25, 0.5
-    elif 2 <= plx[i] and plx[i] < 3:
-        rad, plx_r, pm_r = 5, 0.15, 0.25
-    elif 1 <= plx[i] and plx[i] < 2:
-        rad, plx_r, pm_r = 2.5, 0.1, 0.15
-    else:
-        rad, plx_r, pm_r = 1, 0.05, 0.1
-
-    if not np.isnan(plx_d) and not np.isnan(pm_d):
-        if pm_d < pm_r and plx_d < plx_r and d < rad:
-            return True
-    elif not np.isnan(plx_d) and np.isnan(pm_d):
-        if plx_d < plx_r and d < rad:
-            return True
-    elif np.isnan(plx_d):
-        rad, pm_r = 5, 0.5
-        if not np.isnan(pm_d):
-            if pm_d < pm_r and d < rad:
-                return True
-        else:
-            if d < rad:
-                return True
-
-    return False
 
 
 if __name__ == '__main__':
