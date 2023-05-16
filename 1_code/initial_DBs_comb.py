@@ -48,11 +48,14 @@ def main(sep=',', N_dups=10):
     dup_check(comb_dbs['fnames'])
 
     print("Assign UCC IDs...")
-    ucc_ids = []
+    ucc_ids, quads = [], []
     for i, glon in enumerate(comb_dbs['GLON']):
         glat = comb_dbs['GLAT'][i]
-        ucc_ids.append(DBs_combine.assign_UCC_ids(glon, glat, ucc_ids))
+        ucc_id = DBs_combine.assign_UCC_ids(glon, glat, ucc_ids)
+        ucc_ids.append(ucc_id)
+        quads.append(DBs_combine.QXY_fold(ucc_id))
     comb_dbs['UCC_ID'] = ucc_ids
+    comb_dbs['quad'] = quads
 
     print(f"Finding duplicates (max={N_dups})...")
     comb_dbs['dups_fnames'] = DBs_combine.dups_identify(
@@ -67,7 +70,6 @@ def main(sep=',', N_dups=10):
     comb_dbs['cent_flags'] = [np.nan for _ in range(N_tot)]
     comb_dbs['C1'] = [np.nan for _ in range(N_tot)]
     comb_dbs['C2'] = [np.nan for _ in range(N_tot)]
-    comb_dbs['quad'] = [np.nan for _ in range(N_tot)]
 
     # Save to file
     d = datetime.datetime.now()
