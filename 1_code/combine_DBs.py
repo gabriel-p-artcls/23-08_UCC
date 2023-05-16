@@ -9,7 +9,8 @@ sys.path.insert(1, '/home/gabriel/Github/UCC/add_New_DB/modules/')
 import DBs_combine
 
 """
-Script used to combine all the databases using the clusters' names
+This the initial script used to combine all the databases using the clusters'
+names.
 """
 
 dbs_folder = '/home/gabriel/Github/UCC/add_New_DB/'
@@ -59,12 +60,14 @@ def main(sep=',', N_dups=10):
     comb_dbs['dups_pm_plx'] = DBs_combine.dups_identify(comb_dbs, N_dups, True)
 
     # Add empty columns used later by the 'fastMP_process' scripts
-    comb_dbs['r_50'] = [np.nan for _ in range(len(comb_dbs['ID']))]
-    comb_dbs['Nmembs'] = [np.nan for _ in range(len(comb_dbs['ID']))]
-    comb_dbs['fixed_cent'] = [np.nan for _ in range(len(comb_dbs['ID']))]
-    comb_dbs['cent_flags'] = [np.nan for _ in range(len(comb_dbs['ID']))]
-    comb_dbs['C1'] = [np.nan for _ in range(len(comb_dbs['ID']))]
-    comb_dbs['C2'] = [np.nan for _ in range(len(comb_dbs['ID']))]
+    N_tot = len(comb_dbs['ID'])
+    comb_dbs['r_50'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['Nmembs'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['fixed_cent'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['cent_flags'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['C1'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['C2'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['quad'] = [np.nan for _ in range(N_tot)]
 
     # Save to file
     d = datetime.datetime.now()
