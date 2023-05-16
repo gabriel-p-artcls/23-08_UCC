@@ -420,6 +420,7 @@ Pismis_26 --> removed as it is GC 'Ton 2'
 Lynga_7 --> removed as it is the GC 'BH 184'
 HSC_46 --> removed, < 5 arcmin from GC   'NGC 5904'
 HSC_2605 --> removed, on the field of GC 'NGC 5139'
+HSC_2890, 134 --> removed as these are the GCs Gran 3 & 4
 
 ### QIN23
 Hunting for Neighboring Open Clusters with Gaia DR3: 101 New Open
@@ -542,19 +543,19 @@ HE22 541
 HE22_1 270
 HE22_2 1654
 HAO22 703
-HUNT23 6506
+HUNT23 6504
 QIN23 101
 LI23 35
 CHI23_2 46
 CHI23 82
 CHI23_3 1177
 
-24506 clusters in all DBs
-N=13711 unique names identified
+24504 clusters in all DBs
+N=13709 unique names identified
 ```
 
-We use the database of globular clusters from [Vasiliev & Baumgardt 2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.5978V/abstract).
-https://people.smp.uq.edu.au/HolgerBaumgardt/globular/
+We use the database of globular clusters from [Vasiliev & Baumgardt 2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.5978V/abstract);
+[url](https://people.smp.uq.edu.au/HolgerBaumgardt/globular/).
 
 
 ## Cluster definition
