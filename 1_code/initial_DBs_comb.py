@@ -65,11 +65,21 @@ def main(sep=',', N_dups=10):
     # Add empty columns used later by the 'fastMP_process' scripts
     N_tot = len(comb_dbs['ID'])
     comb_dbs['r_50'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['N_50'] = [np.nan for _ in range(N_tot)]
     comb_dbs['Nmembs'] = [np.nan for _ in range(N_tot)]
     comb_dbs['fixed_cent'] = [np.nan for _ in range(N_tot)]
     comb_dbs['cent_flags'] = [np.nan for _ in range(N_tot)]
     comb_dbs['C1'] = [np.nan for _ in range(N_tot)]
     comb_dbs['C2'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['GLON_m'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['GLAT_m'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['RA_ICRS_m'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['DE_ICRS_m'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['plx_m'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['pmRA_m'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['pmDE_m'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['Rv_m'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['N_Rv'] = [np.nan for _ in range(N_tot)]
 
     # Save to file
     d = datetime.datetime.now()
@@ -382,11 +392,16 @@ def dup_check(fnames):
     """
     Check for duplicates in 'fnames' list
     """
+    fnames0 = [_.split(';')[0] for _ in fnames]
+    if len(fnames0) > len(list(set(fnames0))):
+        print(len(fnames0) - len(list(set(fnames0))))
+        breakpoint()
+
     for i, cl0 in enumerate(fnames):
         for j, cl1 in enumerate(fnames[i + 1:]):
             for cl01 in cl0.split(';'):
                 if cl01 == cl1.split(';')[0]:
-                    print(i, i + 1 + j, cl0, cl1)
+                    print("dup fname0:", i, i + 1 + j, cl0, cl1)
                     breakpoint()
                     break
 
