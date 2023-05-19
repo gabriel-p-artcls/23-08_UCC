@@ -27,9 +27,9 @@
   - CASTRO22
   - HE22
   - HE22_1
-  - HE22_2
   - HAO22
   - LI22
+  - HE23
   - HUNT23
   - QIN23
   - LI23
@@ -355,17 +355,6 @@ Clusters within 1.2 kpc of the Sun, [He et al. (2022)](https://ui.adsabs.harvard
 
 The table contains 270 'CWNU_' clusters.
 
-### HE22_2
-Unveiling hidden stellar aggregates in the Milky Way: 1656 new star
-clusters found in Gaia EDR3, [He et al. (2022)](https://ui.adsabs.harvard.edu/abs/2022arXiv220908504H/abstract), [Vizier](https://cdsarc.cds.unistra.fr/ftp/vizier.submit/he22c/)
-
-The table contains 1656 with no acronym, added 'CWNU_'. Added (ra, de) columns.
-This DB lists the cluster 1951 right on the field of the NGC 5139 (Omega
-Centauri) globular cluster. No real cluster is apparent there
-
-CWNU_1589 --> removed, <5 arcmin from GC 'Ryu 879'
-CWNU_1951 --> removed, <5 arcmin from GC 'NGC 5139'
-
 ### HAO22
 Newly detected open clusters in the Galactic disk using Gaia EDR3,
 [Hao et al. 2022](https://ui.adsabs.harvard.edu/abs/2022A%26A...660A...4H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/660/A4)
@@ -380,6 +369,15 @@ LISC Catalog of Star Clusters. I. Galactic Disk Clusters in Gaia EDR3,
 
 This table lists 61 'LISC_' clusters. The table contains a column called
 `t/t_range` in Gyr and I'm not sure what it represents.
+
+### HE23
+Unveiling hidden stellar aggregates in the Milky Way: 1656 new star
+clusters found in Gaia EDR3, [He et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023ApJS..264....8H/abstract), [Vizier](https://cdsarc.cds.unistra.fr/ftp/vizier.submit/he22c/)
+
+The table contains 1656 with no acronym, added 'CWNU_'. Added (ra, de) columns.
+
+CWNU_1589 --> removed, <5 arcmin from GC 'Ryu 879'
+CWNU_1951 --> removed, <5 arcmin from GC 'NGC 5139'
 
 ### HUNT23
 Improving the open cluster census. II. An all-sky cluster catalogue
