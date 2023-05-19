@@ -48,6 +48,9 @@ def main(sep=',', N_dups=10):
     dup_check(comb_dbs['fnames'])
 
     print("Assign UCC IDs...")
+    # Order by (lon, lat) first
+    df_comb = pd.DataFrame(comb_dbs)
+    comb_dbs = df_comb.sort_values(['GLON', 'GLAT'])
     ucc_ids, quads = [], []
     for i, glon in enumerate(comb_dbs['GLON']):
         glat = comb_dbs['GLAT'][i]
@@ -58,9 +61,7 @@ def main(sep=',', N_dups=10):
     comb_dbs['quad'] = quads
 
     print(f"Finding duplicates (max={N_dups})...")
-    comb_dbs['dups_fnames'] = DBs_combine.dups_identify(
-        comb_dbs, N_dups, False)
-    comb_dbs['dups_pm_plx'] = DBs_combine.dups_identify(comb_dbs, N_dups, True)
+    comb_dbs['dups_fnames'] = DBs_combine.dups_identify(comb_dbs, N_dups)
 
     # Add empty columns used later by the 'fastMP_process' scripts
     N_tot = len(comb_dbs['ID'])
