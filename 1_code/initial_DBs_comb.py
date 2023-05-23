@@ -51,6 +51,7 @@ def main(sep=',', N_dups=10):
     # Order by (lon, lat) first
     df_comb = pd.DataFrame(comb_dbs)
     comb_dbs = df_comb.sort_values(['GLON', 'GLAT'])
+    comb_dbs = comb_dbs.reset_index(drop=True)
     ucc_ids, quads = [], []
     for i, glon in enumerate(comb_dbs['GLON']):
         glat = comb_dbs['GLAT'][i]
