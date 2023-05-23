@@ -14,7 +14,7 @@ import os
 # GAIADR3_path = '/media/gabriel/backup/gabriel/GaiaDR3/'
 # frames_path = GAIADR3_path + 'datafiles_G20/'
 # frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
-# UCC_cat = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230517.csv"
+# UCC_cat = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230520.csv"
 # GCs_cat = "/home/gabriel/Github/UCC/add_New_DB/databases/globulars.csv"
 # out_path = "out/"
 
@@ -28,15 +28,15 @@ frames_path = GAIADR3_path + 'datafiles_G20/'
 # File that contains the regions delimited by each frame (in this folder)
 frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
 # Full database of clusters (in this folder)
-UCC_cat = "UCC_cat_20230517.csv"
+UCC_cat = "UCC_cat_20230523.csv"
 GCs_cat = "globulars.csv"
 out_path = "out/"
 
 # Run ID
-ij = int(os.path.basename(__file__).split('.')[0][-1:]) - 1
+ij = int(os.path.basename(__file__).split('.')[0].split('_')[-1]) - 1
 
 
-def run(Nj=5):
+def run(Nj=10):
     """
     """
     # Read data
