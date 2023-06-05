@@ -134,3 +134,4 @@ dmypy.json
 /1_code/*.csv
 /0_data/CG_2017/*
 hunt23_members.csv.gz
+hunt23_members.parquet
