@@ -12,9 +12,9 @@ import os
 # sys.path.insert(1, '/home/gabriel/Github/fastmp/')
 # from fastmp import fastMP
 # GAIADR3_path = '/media/gabriel/backup/gabriel/GaiaDR3/'
-# frames_path = GAIADR3_path + 'datafiles_G20/'
+# frames_path = GAIADR3_path + 'datafiles_parquet_G20/'
 # frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
-# UCC_cat = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230520.csv"
+# UCC_cat = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230602.csv"
 # GCs_cat = "/home/gabriel/Github/UCC/add_New_DB/databases/globulars.csv"
 # out_path = "out/"
 
@@ -24,11 +24,11 @@ import main_process_GDR3_query as G3Q
 from fastmp import fastMP
 # Path to the database with Gaia DR3 data
 GAIADR3_path = '/home/gperren/GaiaDR3/'
-frames_path = GAIADR3_path + 'datafiles_G20/'
+frames_path = GAIADR3_path + 'datafiles_parquet_G20/'
 # File that contains the regions delimited by each frame (in this folder)
 frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
 # Full database of clusters (in this folder)
-UCC_cat = "UCC_cat_20230523.csv"
+UCC_cat = "UCC_cat_20230605.csv"
 GCs_cat = "globulars.csv"
 out_path = "out/"
 
