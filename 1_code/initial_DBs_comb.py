@@ -17,7 +17,7 @@ dbs_folder = '/home/gabriel/Github/UCC/add_New_DB/'
 DBs_json = "databases/all_dbs.json"
 
 
-def main(sep=',', N_dups=10):
+def main(sep=','):
     """
 
     sep: default character assumed to be used by all DBs to separate between
@@ -61,8 +61,8 @@ def main(sep=',', N_dups=10):
     comb_dbs['UCC_ID'] = ucc_ids
     comb_dbs['quad'] = quads
 
-    print(f"Finding duplicates (max={N_dups})...")
-    dups_fnames, dups_probs = DBs_combine.dups_identify(comb_dbs, N_dups)
+    print("Finding duplicates...")
+    dups_fnames, dups_probs = DBs_combine.dups_identify(comb_dbs)
     comb_dbs['dups_fnames'] = dups_fnames
     comb_dbs['dups_probs'] = dups_probs
 
@@ -75,6 +75,7 @@ def main(sep=',', N_dups=10):
     comb_dbs['cent_flags'] = [np.nan for _ in range(N_tot)]
     comb_dbs['C1'] = [np.nan for _ in range(N_tot)]
     comb_dbs['C2'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['C3'] = [np.nan for _ in range(N_tot)]
     comb_dbs['N_50'] = [np.nan for _ in range(N_tot)]
     comb_dbs['GLON_m'] = [np.nan for _ in range(N_tot)]
     comb_dbs['GLAT_m'] = [np.nan for _ in range(N_tot)]
@@ -85,6 +86,7 @@ def main(sep=',', N_dups=10):
     comb_dbs['pmDE_m'] = [np.nan for _ in range(N_tot)]
     comb_dbs['Rv_m'] = [np.nan for _ in range(N_tot)]
     comb_dbs['N_Rv'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['N_ex_cls'] = [np.nan for _ in range(N_tot)]
 
     # Save to file
     d = datetime.datetime.now()
@@ -247,18 +249,24 @@ def get_matches(
                         cl_dict[cl_str]['DB_i'].append(i)
                         # Extract row from this DB
                         row = df.iloc[i]
-                        # if DB_ID != 'DIAS21':
-                        #     # This DB has bad data for RA
                         cl_dict[cl_str]['RA'].append(row[ra])
                         cl_dict[cl_str]['DE'].append(row[de])
+                        
+                        bad_DB = False
                         if DB_ID in ('KHARCHENKO12', 'LOKTIN17'):
                             # These DBs has bad data for these parameters
-                            continue
-                        if plx is not None:
+                            bad_DB = True
+                        if plx is None or bad_DB is True:
+                            cl_dict[cl_str]['plx'].append(np.nan)
+                        else:
                             cl_dict[cl_str]['plx'].append(row[plx])
-                        if pmra is not None:
+                        if pmra is None or bad_DB is True:
+                            cl_dict[cl_str]['pmra'].append(np.nan)
+                        else:
                             cl_dict[cl_str]['pmra'].append(row[pmra])
-                        if pmde is not None:
+                        if pmde is None or bad_DB is True:
+                            cl_dict[cl_str]['pmde'].append(np.nan)
+                        else:
                             cl_dict[cl_str]['pmde'].append(row[pmde])
 
                     if db_match:
@@ -283,6 +291,20 @@ def combine_DBs(cl_dict):
         # Store DBs and the indexes in them where the cluster is located
         db_l.append(";".join(str(_) for _ in DBs))
         db_i_l.append(";".join(str(_) for _ in DBs_i))
+
+        # USe 'CANTAT20' values exclusively if they are present as they are
+        # of better quality than the rest
+        try:
+            i = DBs.index('CANTAT20')
+            ra, dec = ra[i], dec[i]
+            if len(plx) > 0:
+                plx = plx[i]
+            if len(pmRA) > 0:
+                pmRA = pmRA[i]
+            if len(pmDE) > 0:
+                pmDE = pmDE[i]
+        except ValueError:
+            pass
 
         names_l.append(names)
 

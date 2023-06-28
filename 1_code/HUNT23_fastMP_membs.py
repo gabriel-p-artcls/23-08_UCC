@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-clpath = "/home/gabriel/Descargas/out/"
-final_dbs_path = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230520.csv"
+clpath = "/media/gabriel/rest/out/"
+final_dbs_path = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230626_out.csv"
 hunt23_DB_path = "/home/gabriel/Github/UCC/add_New_DB/databases/HUNT23.csv"
-hunt23_membs_path = "../0_data/hunt23_members.csv.gz"
+hunt23_membs_path = "../0_data/hunt23_members.parquet"
 
 
 def main():
@@ -15,9 +15,9 @@ def main():
     """
     # Read HUNT23 members data
     print("Reading HUNT23 members...")
-    hunt23_membs = pd.read_csv(hunt23_membs_path)
-    hunt23_ids = hunt23_membs['source_id']
-    hunt23_names = hunt23_membs['name']
+    hunt23_membs = pd.read_parquet(hunt23_membs_path)
+    hunt23_ids = hunt23_membs['GaiaDR3']
+    hunt23_names = hunt23_membs['Name']
 
     final_db = pd.read_csv(final_dbs_path)
     hunt23_DB = pd.read_csv(hunt23_DB_path)
@@ -29,17 +29,15 @@ def main():
         if 'HUNT23' not in row['DB']:
             continue
         fname0 = row['fnames'].split(';')[0]
-        # if 'vdb' not in row['fnames']:
-        #     continue
 
         # Read fastMP data for this cluster
         Qfold = row['quad']
         try:
-            cl_d = pd.read_csv(
-                clpath + Qfold + '/datafiles/' + fname0 + '.csv.gz')
+            cl_d = pd.read_parquet(
+                clpath + Qfold + '/datafiles/' + fname0 + '.parquet')
             probs = cl_d['probs'].values
             msk = probs > 0.5
-            Nmembs = int(row['Nmembs'])
+            Nmembs = int(row['N_membs'])
             if msk.sum() < Nmembs:
                 # Select the 'N_membs' stars with the largest probabilities
                 idx = np.argsort(probs)[::-1][:Nmembs]
@@ -47,27 +45,34 @@ def main():
                 msk[idx] = True
             cl_d = cl_d[msk]
         except:
-            print(f"Could not find {Qfold}/{fname0}.csv.gz file")
+            print(f"Could not find {Qfold}/{fname0}.parquet")
             continue
 
         # Identify cluster in HUNT23 DB
         dbs_idx = row['DB_i'].split(';')
         h23_j = row['DB'].split(';').index('HUNT23')
         hunt23_idx = int(dbs_idx[h23_j])
-        hunt23_name = hunt23_DB['name'][hunt23_idx]
-        # Identify the members for this cluster in HUNT23
+        hunt23_name = hunt23_DB['Name'][hunt23_idx].strip()
 
+        # Identify the members for this cluster in HUNT23
         if hunt23_name.startswith('VDBH_'):
             hunt23_name = 'BH_' + hunt23_name.split(',')[0].split('_')[1]
         if hunt23_name.startswith('VDB_'):
             hunt23_name = 'vdBergh_' + hunt23_name.split(',')[0].split('_')[1]
-
         msk = hunt23_names == hunt23_name
         if msk.sum() == 0:
             print(f"Could not find cluster {hunt23_name} in HUNT23")
             continue
+
+        # # box_s = np.percentile(hunt23_membs['ra'][msk], 95)-np.percentile(hunt23_membs['ra'][msk], 5)
+        # # dec = np.median(hunt23_membs['dec'][msk].values)
+        # # cos_dec = np.cos(np.deg2rad(dec))
+        # # box_si = cos_dec * box_s / np.sqrt(2)
+        # # print(fname0, np.median(hunt23_membs['b'][msk]), np.median(hunt23_membs['parallax'][msk]), box_si)
+        # continue
+
         # Store HUNT23 magnitudes binned distribution
-        hunt23_gmag = hunt23_membs['phot_g_mean_mag'][msk].values
+        hunt23_gmag = hunt23_membs['Gmag'][msk].values
         hunt23_hist += np.histogram(hunt23_gmag, bins=range(6, 21))[0]
 
         # Store our magnitudes binned distribution
@@ -85,11 +90,11 @@ def main():
         N_ours, N_hunt, N_match = ours_gmag.size, hunt23_gmag.size,\
             match_gmag.size
         if N_ours+N_hunt > 0:
-            print("{},{},{},{},{},{}".format(
-                i, fname0, N_ours, N_hunt, N_match,
-                round((N_ours-N_hunt)/(N_ours+N_hunt), 3)))
+            rel_diff = round((N_ours-N_hunt)/(N_ours+N_hunt), 3)
         else:
-            print("{},{},{},{},{}".format(i, fname0, N_ours, N_hunt, 'nan'))
+            rel_diff = 'nan'
+        print("{},{},{},{},{},{}".format(
+            i, fname0, N_ours, N_hunt, N_match, rel_diff))
 
     print(match_hist)
     print(ours_hist)
