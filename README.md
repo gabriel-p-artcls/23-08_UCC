@@ -41,7 +41,6 @@
   - HAO21
   - KOUNKEL20
 - Cross-matching results
-- Cluster definition
 - Annotated clusters
 - Clusters with issues
 - Probably useful references
@@ -83,6 +82,7 @@ can be read appropriately. These are the databases and the changes made to each:
 Global survey of star clusters in the Milky Way. I. The
 Pipeline and ...; [Kharchenko et al. 2012](https://ui.adsabs.harvard.edu/abs/2012A%26A...543A.156K), [HEASARC](https://heasarc.gsfc.nasa.gov/W3Browse/all/mwsc.html)
 
+We do not use these values in the DB.
 I retrieved the data from the HEASARC service selecting all clusters with
 'class' equal to "OPEN STAR CLUSTER", resulting in 2858 entries.
 This DB lists the FSR clusters as "FSR XXXX" with leading zeros and the ESO
@@ -200,10 +200,7 @@ More specifically, 902 (98%) clusters are smaller than 3′, and
 207 New Open Star Clusters within 1 kpc from Gaia Data Release,
 [Sim et al. 2019](https://ui.adsabs.harvard.edu/abs/2019JKAS...52..145S/abstract), Data taken from Table 2 in online article
 
-The table contains 207 UPK clusters. Three of these clusters were identified
-as duplicated UBC clusters IN CG20. I thus remove these 3 clusters: UPK 19
-(UBC 32), UPK 172 (UBC 10a), and UPK 327 (UBC 88); note that CGA20 mistakenly
-wrote UPK 176 instead of UPK 172. Added (ra, dec) columns and a plx column
+The table contains 207 UPK clusters. Added (ra, dec) columns and a plx column
 estimated as 1000/dist_pc
 
 #### CASTRO19
@@ -228,6 +225,8 @@ The table contains 3 UFMG clusters. Added (ra, de) columns.
 ### CASTRO20
 Hunting for open clusters in Gaia DR2: 582 new open clusters ..
 Galactic disc, [Castro-Ginard et al. 2020](https://ui.adsabs.harvard.edu/abs/2020A%26A...635A..45C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/635/A45)
+
+Fixed wrong ra coordinates for UBC595, UBC181
 
 The table contains 570 UBC clusters.
 
@@ -265,7 +264,8 @@ The table contains 34 UFMG clusters.
 A catalogue of 74 new open clusters found in Gaia Data-Release 2,
 [He et al. (2021)](https://ui.adsabs.harvard.edu/abs/2021RAA....21...93H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/other/RAA/21.93)
 
-The table contains 74 with no acronym, added 'CWNU_'. Added (ra, de) columns.
+The table contains 74 with no acronym, added 'HXHWL_' to match HUNT23.
+ Added (ra, de) columns.
 
 ### DIAS21
 Updated parameters of 1743 open clusters based on Gaia DR2,
@@ -276,15 +276,12 @@ with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
 
 The table lists 177 LIUPANG19 clusters because it includes clusters not
 listed as new by the authors. We remove all except those listed as new in
-LIUPANG19. Cluster 866 was duplicated so one entry was removed. Changed
-'LP_' to 'FoF_' for consistency.
+LIUPANG19. Cluster LP_866 was duplicated (LP_0866) so one entry was removed.
+Changed 'LP_' to 'FoF_' for consistency.
 
 BH       --> VDBH per CDS recommendation
 vdBergh  --> VDB per CDS recommendation
 Sigma_Ori --> Sigma_Orionis
-
-This DB contains wrong RA data for several clusters (differences with HAO21:
-`10>1 deg`, `14>0.5 deg`, `86>0.1 deg`)
 
 The `r50` column is listed with 'pc' units in Vizier, but it is degrees unit.
 It also shows 4 clusters with very large `r50` values which could be listed
@@ -353,7 +350,12 @@ Replaced '---' with '' for RV values
 A Blind All-sky Search for Star Clusters in Gaia EDR3: 886
 Clusters within 1.2 kpc of the Sun, [He et al. (2022)](https://ui.adsabs.harvard.edu/abs/2022ApJS..262....7H/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/262/7)
 
-The table contains 270 'CWNU_' clusters.
+The table contains 270 new 'CWNU_' clusters. Removed Theia entries.
+Changed 'LP_' to 'FoF_' to match HUNT23, LIUPANG19, TARRICQ22
+
+ESO_489-01 --> ESO_489_01
+vdBergh  --> VDB per CDS recommendation
+Sigma_Ori --> Sigma_Orionis
 
 ### HAO22
 Newly detected open clusters in the Galactic disk using Gaia EDR3,
@@ -376,35 +378,28 @@ clusters found in Gaia EDR3, [He et al. (2023)](https://ui.adsabs.harvard.edu/ab
 
 The table contains 1656 with no acronym, added 'CWNU_'. Added (ra, de) columns.
 
-CWNU_1589 --> removed, <5 arcmin from GC 'Ryu 879'
-CWNU_1951 --> removed, <5 arcmin from GC 'NGC 5139'
-
 ### HUNT23
 Improving the open cluster census. II. An all-sky cluster catalogue
-with Gaia DR3, [Hunt & Reffert (2023)](https://ui.adsabs.harvard.edu/abs/2023arXiv230313424H/abstract), [Vizier]() ???
+with Gaia DR3, [Hunt & Reffert (2023)](https://ui.adsabs.harvard.edu/abs/2023arXiv230313424H/abstract), [Vizier](https://vizier.cfa.harvard.edu/viz-bin/VizieR?-source=J/A%2BA/673/A114)
 
-The table contains 7167 clusters. This DB lists the FSR clusters as "FSR_XXX"
-with no leading zeros and the ESO clusters as "ESO_XXX-XX" with no leading
-zeroes.
+Removed all globular clusters marked as open clusters: Palomar 2, 7 (listed
+as IC_1276) 8, 10, 11, 12, ESO_452-11 (listed as 1636-283), Pismis_26 (Ton 2),
+Lynga_7 (BH 184). HSC_2890 and HSC_134 were removed as their position and
+astrometry match those of the GCs Gran 3 and 4. HSC 2605 has very similar
+coordinates and proper motions to globular NGC 5139 but its parallax is
+different, so it was not removed.
+Also removed moving groups and Theia entries.
 
-Added the names of the 'HSC_' clusters to the 'name_all' column that were
-missing, except for line 3400 (HSC_1995) were a cluster was already identified.
-Added the name of the NGC_2533 cluster in the "name_all" column (4587 line)
-which was also missing.
+Many HSC clusters have center values that do not align with the medians of
+their members.
 
-Removed all globular clusters and moving groups, including Palomar 2, 7 (listed
-as IC_1276) 8, 10, 11, 12, ESO_452-11 (listed as 1636-283) marked as open
-clusters.
-
-The final list contains XXXX entries.
-
-Fixed:
-ESO 589-26,MW --> ESO 589-26 (dragged from BICA19)
-ESO_429-429 --> ESO_429-02 (according to CDS coords)
 BH        --> VDBH per CDS recommendation (added 'vdBergh-Hagen' so that the
 naming isn't lost)
 vdBergh_  --> VDB_ per CDS recommendation (added 'vdBergh' so that the
 naming isn't lost)
+
+Fixed:
+ESO_429-429 --> ESO_429-02 (according to CDS coords)
 CMa_2 --> CMa_02
 AH03_J0748+26.9 --> AH03_J0748-26.9
 Juchert_J0644.8+0925 --> Juchert_J0644.8-0925
@@ -414,11 +409,6 @@ Teutsch_J1037.3+6034 --> Teutsch_J1037.3-6034
 Teutsch_J1209.3+6120 --> Teutsch_J1209.3-6120
 Collinder_302 --> fixed position to (246.525, -26.233), it was centered at GC
 NGC 6121
-Pismis_26 --> removed as it is GC 'Ton 2'
-Lynga_7 --> removed as it is the GC 'BH 184'
-HSC_46 --> removed, < 5 arcmin from GC   'NGC 5904'
-HSC_2605 --> removed, on the field of GC 'NGC 5139'
-HSC_2890, 134 --> removed as these are the GCs Gran 3 & 4
 
 ### QIN23
 Hunting for Neighboring Open Clusters with Gaia DR3: 101 New Open
@@ -454,14 +444,12 @@ names to match HUNT23. Added (ra, dec) columns.
 ### CHI23_3
 **WARNING**: https://twitter.com/CantatGaudin/status/1638133660875456515
 Blind Search of The Solar Neighborhood Galactic Disk within 5kpc: 1179 new
-Star clusters found in Gaia DR3, [Chi et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023arXiv230310380C/abstrac), Table requested to
+Star clusters found in Gaia DR3, [Chi et al. (2023)](https://ui.adsabs.harvard.edu/abs/2023arXiv230310380C/abstract), Table requested to
 authors
 
 The table lists 1179 clusters. Added CWWDL following the convention by HUNT23
-for DBs with no acronyms.
-
-CWWDL_3274 --> removed, < 5 arcmin from GC  'NGC 7089'
-CWWDL_3247 --> removed, < 5 arcmin from GC  'NGC 5897'
+for DBs with no acronyms. Clusters CWWDL_3274 and CWWDL_3247 are very close
+to GCs 'NGC 7089' and 'NGC 5897' with slightly different parallax values.
 
 
 ### Small databases included in HUNT23
@@ -506,7 +494,7 @@ communication:
 nowadays, we don't have a proper definition of what it means any more, outside
 of those classicaly identified.*"
 
-We thus include in our catalogue only a fraction of those listed by HUNT23.
+We thus remove from HUNT23 and HE22_1 the Theia entries.
 
 
 
@@ -520,7 +508,7 @@ LOKTIN17 1050
 CASTRO18 23
 BICA19 3555
 CASTRO19 53
-SIM19 204
+SIM19 207
 LIUPANG19 76
 FERREIRA19 3
 CANTAT20 2017
@@ -538,29 +526,23 @@ CASTRO22 628
 TARRICQ22 467
 LI22 61
 HE22 541
-HE22_1 270
-HE22_2 1654
+HE22_1 836
 HAO22 703
-HUNT23 6504
+HE23 1656
+HUNT23 6272
 QIN23 101
 LI23 35
 CHI23_2 46
 CHI23 82
-CHI23_3 1177
+CHI23_3 1179
 
-24504 clusters in all DBs
-N=13709 unique names identified
+24845 clusters in all DBs
+N=13549 unique names identified
 ```
 
 We use the database of globular clusters from [Vasiliev & Baumgardt 2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.5978V/abstract);
-[url](https://people.smp.uq.edu.au/HolgerBaumgardt/globular/).
-
-
-## Cluster definition
-
-Consider a point c in an n-dimensional space and an integer value m>0. We define
-a 'cluster' as the collection of m elements with the smallest n-dimensional
-euclidean distance to c.
+[url](https://people.smp.uq.edu.au/HolgerBaumgardt/globular/). Added the Gran 2, 3, 4, 5 GCs from Tables 1 and 2 of
+[Gran et al. 2022](https://ui.adsabs.harvard.edu/abs/2022MNRAS.509.4962G/abstract). The parallax is estimated as the inverted distance.
 
 
 
