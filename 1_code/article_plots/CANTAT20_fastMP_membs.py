@@ -4,10 +4,14 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-clpath = "/media/gabriel/rest/out/"
-final_dbs_path = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230620_out.csv"
+# date = "0702"
+# date = "0710"
+date = "0712"
+clpath = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/"
+final_dbs_path = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/UCC_cat_20230702_out.csv"
+
 cantat20_DB_path = "/home/gabriel/Github/UCC/add_New_DB/databases/CANTAT20.csv"
-cantat20_membs_path = "../0_data/CG_2020_members.csv.gz"
+cantat20_membs_path = "/media/gabriel/rest/Dropbox_nosync/Papers/2023/GDR3_members/0_data/CG_2020_members.csv.gz"
 
 
 def main():
@@ -30,6 +34,9 @@ def main():
             continue
         fname0 = row['fnames'].split(';')[0]
 
+        # if fname0 != 'ruprecht143':
+        #     continue
+
         # Read fastMP data for this cluster
         Qfold = row['quad']
         try:
@@ -37,14 +44,14 @@ def main():
                 clpath + Qfold + '/datafiles/' + fname0 + '.parquet')
             probs = cl_d['probs'].values
             msk = probs > 0.5
-            Nmembs = int(row['N_membs'])
+            Nmembs = 25 # int(row['N_membs'])
             if msk.sum() < Nmembs:
                 # Select the 'N_membs' stars with the largest probabilities
                 idx = np.argsort(probs)[::-1][:Nmembs]
                 msk = np.full(len(probs), False)
                 msk[idx] = True
             cl_d = cl_d[msk]
-            msk = cl_d['Gmag'].values < 18
+            msk = cl_d['Gmag'].values < 18 # IMPORTANT
             cl_d = cl_d[msk]            
         except:
             print(f"Could not find {Qfold}/{fname0}.parquet")
@@ -68,7 +75,7 @@ def main():
             print(f"Could not find cluster {cantat20_name} in cantat20")
             continue
 
-        # Store cantat20 magnitudes binned distribution
+        # Store CANTAT20 magnitudes binned distribution
         cantat20_gmag = cantat20_membs['Gmag'][msk].values
         cantat20_hist += np.histogram(cantat20_gmag, bins=range(6, 19))[0]
 
@@ -94,7 +101,7 @@ def main():
             i, fname0, N_ours, N_hunt, N_match, rel_diff))
 
     print(match_hist)
-    print(ours_hist)
+    # print(ours_hist)
     print(cantat20_hist)
 
     x = np.arange(6.5, 18.5, 1)

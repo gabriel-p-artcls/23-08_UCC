@@ -4,10 +4,14 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-clpath = "/media/gabriel/rest/out/"
-final_dbs_path = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230626_out.csv"
+# date = "0702"
+# date = "0710"
+date = "0712"
+clpath = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/"
+final_dbs_path = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/UCC_cat_20230702_out.csv"
+
 hunt23_DB_path = "/home/gabriel/Github/UCC/add_New_DB/databases/HUNT23.csv"
-hunt23_membs_path = "../0_data/hunt23_members.parquet"
+hunt23_membs_path = "/media/gabriel/rest/Dropbox_nosync/Papers/2023/GDR3_members/0_data/hunt23_members.parquet"
 
 
 def main():
@@ -37,7 +41,7 @@ def main():
                 clpath + Qfold + '/datafiles/' + fname0 + '.parquet')
             probs = cl_d['probs'].values
             msk = probs > 0.5
-            Nmembs = int(row['N_membs'])
+            Nmembs = 25 # int(row['N_membs'])
             if msk.sum() < Nmembs:
                 # Select the 'N_membs' stars with the largest probabilities
                 idx = np.argsort(probs)[::-1][:Nmembs]
@@ -97,7 +101,7 @@ def main():
             i, fname0, N_ours, N_hunt, N_match, rel_diff))
 
     print(match_hist)
-    print(ours_hist)
+    # print(ours_hist)
     print(hunt23_hist)
 
     x = np.arange(6.5, 20.5, 1)
