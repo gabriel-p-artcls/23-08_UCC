@@ -68,15 +68,15 @@ def main(sep=','):
 
     # Add empty columns used later by the 'fastMP_process' scripts
     N_tot = len(comb_dbs['ID'])
-    comb_dbs['r_50'] = [np.nan for _ in range(N_tot)]
     comb_dbs['N_fixed'] = [np.nan for _ in range(N_tot)]
     comb_dbs['N_membs'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['N_50'] = [np.nan for _ in range(N_tot)]
+    comb_dbs['r_50'] = [np.nan for _ in range(N_tot)]
     comb_dbs['fixed_cent'] = [np.nan for _ in range(N_tot)]
     comb_dbs['cent_flags'] = [np.nan for _ in range(N_tot)]
     comb_dbs['C1'] = [np.nan for _ in range(N_tot)]
     comb_dbs['C2'] = [np.nan for _ in range(N_tot)]
     comb_dbs['C3'] = [np.nan for _ in range(N_tot)]
-    comb_dbs['N_50'] = [np.nan for _ in range(N_tot)]
     comb_dbs['GLON_m'] = [np.nan for _ in range(N_tot)]
     comb_dbs['GLAT_m'] = [np.nan for _ in range(N_tot)]
     comb_dbs['RA_ICRS_m'] = [np.nan for _ in range(N_tot)]
