@@ -7,9 +7,11 @@ import matplotlib.pyplot as plt
 Print/plot data on the CG20 clusters.
 """
 
-# clpath = "/media/gabriel/rest/Dropbox_nosync/Papers/2023/GDR3_members/1_code/out/"
-clpath = "/media/gabriel/rest/out/"
-final_dbs_path = "/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230626_in.csv"
+# date = "0702"
+date = "0712"
+clpath = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/"
+final_dbs_path = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/UCC_cat_20230702_out.csv"
+
 # CG2020
 path0 = "../0_data/CG_2020_members.csv.gz"
 
@@ -19,7 +21,7 @@ fnames = [_.split(';')[0] for _ in fastMP_db['fnames']]
 
 
 def main():
-    plot('HSC_655')
+    plot('NGC_3144')
     breakpoint()
 
 
@@ -33,7 +35,7 @@ def plot(clname):
 
     probs = cl2['probs'].values
     msk = probs > .5
-    Nmembs = int(row['N_membs'])
+    Nmembs = 25 #int(row['N_membs'])
     if msk.sum() < Nmembs:
         # Select the 'N_membs' stars with the largest probabilities
         idx = np.argsort(probs)[::-1][:Nmembs]
