@@ -9,7 +9,7 @@
   - CASTRO18
   - BICA19
   - SIM19
-    - CASTRO19
+  - CASTRO19
   - LIUPANG19
   - FERREIRA19
   - CASTRO20
@@ -42,6 +42,7 @@
   - KOUNKEL20
 - Cross-matching results
 - Annotated clusters
+- Re-processed clusters
 - Clusters with issues
 - Probably useful references
 
@@ -203,7 +204,7 @@ More specifically, 902 (98%) clusters are smaller than 3′, and
 The table contains 207 UPK clusters. Added (ra, dec) columns and a plx column
 estimated as 1000/dist_pc
 
-#### CASTRO19
+### CASTRO19
 Hunting for open clusters in Gaia DR2: the Galactic anticentre,
 [Castro-Ginard et al. 2019](https://ui.adsabs.harvard.edu/abs/2019A%26A...627A..35C/abstract), [Vizier](https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/A+A/627/A35)
 
@@ -275,9 +276,9 @@ The table contains 1743 clusters. This DB lists the FSR clusters as "FSR_XXXX"
 with leading zeros and the ESO clusters as "ESO_XXX_XX" with leading zeroes.
 
 The table lists 177 LIUPANG19 clusters because it includes clusters not
-listed as new by the authors. We remove all except those listed as new in
-LIUPANG19. Cluster LP_866 was duplicated (LP_0866) so one entry was removed.
-Changed 'LP_' to 'FoF_' for consistency.
+listed as new by the authors. Changed 'LP_' to 'FoF_' for consistency.
+Removed the leading zero in 'FoF_XXXX'. Cluster 'LP_866' was duplicated
+(LP_0866), removed the second entry. 
 
 BH       --> VDBH per CDS recommendation
 vdBergh  --> VDB per CDS recommendation
@@ -363,7 +364,7 @@ Newly detected open clusters in the Galactic disk using Gaia EDR3,
 
 This table lists 704 'OC_' clusters.
 
-OC 0586 --> removed, <5 arcmin from GC 'BH 140'
+OC 0586 --> removed, GC 'BH 140'
 
 ### LI22
 LISC Catalog of Star Clusters. I. Galactic Disk Clusters in Gaia EDR3,
@@ -515,7 +516,7 @@ CANTAT20 2017
 CASTRO20 570
 FERREIRA20 25
 HAO20 16
-DIAS21 1604
+DIAS21 1742
 CASADO21 20
 FERREIRA21 34
 HUNT21 41
@@ -536,8 +537,8 @@ CHI23_2 46
 CHI23 82
 CHI23_3 1179
 
-24845 clusters in all DBs
-N=13549 unique names identified
+24983 clusters in all DBs
+N=13684 unique names identified
 ```
 
 We use the database of globular clusters from [Vasiliev & Baumgardt 2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.5978V/abstract);
@@ -558,6 +559,11 @@ Mamajek_1: there appears to be another unidentified cluster at ~(300.4, -16)
 NGC_2244: 2nd cluster in frame at ~(206.17, -2.3)?
 Loden 466 & Stock 14 appear to be the same cluster
 Melotte_111 has a very large radius
+
+
+## Re-processed clusters
+
+Latham 1: manual box size 10 deg
 
 
 ## Clusters with issues
