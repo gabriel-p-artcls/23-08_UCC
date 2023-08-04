@@ -47,7 +47,7 @@ def main():
 
     fig, ax = plt.subplots(1, figsize=(6, 6))
 
-    size = np.log10(1 + df['N_50'])**5
+    size = np.log10(25 + df['N_50'])**5
     # size = np.log10(df['r_50_pc'] * 10)**5
 
     msk1 = df['r_50_pc'] < 20
@@ -60,8 +60,8 @@ def main():
         df['C_lkl'][~msk1], df['C_dens'][~msk1], c=-dist[~msk1], alpha=.7, cmap='plasma',
         s=size[~msk1], lw=.1, ec='k', marker='s', vmin=-vmax, vmax=-vmin)
 
-    plt.xlabel(r"$C_{phot}$")
-    plt.ylabel(r"$C_{dens}$")
+    plt.xlabel(r"$C_{phot}$", fontsize=14)
+    plt.ylabel(r"$C_{dens}$", fontsize=14)
     plt.xlim(0.01, 1.04)
     plt.ylim(0.01, 1.04)
 

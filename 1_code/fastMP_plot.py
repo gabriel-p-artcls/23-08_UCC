@@ -7,10 +7,8 @@ import matplotlib.pyplot as plt
 Print/plot data on the CG20 clusters.
 """
 
-# date = "0702"
-date = "0712"
-clpath = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/"
-final_dbs_path = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/UCC_cat_20230702_out.csv"
+clpath = "/home/gabriel/Github/UCC/"
+final_dbs_path = clpath + "add_New_DB/UCC_cat_20230702.csv"
 
 print("Reading fastMP output file...")
 fastMP_db = pd.read_csv(final_dbs_path)
@@ -18,7 +16,7 @@ fnames = [_.split(';')[0] for _ in fastMP_db['fnames']]
 
 
 def main():
-    plot('ngc7826')
+    plot('ngc2516')
     breakpoint()
 
 

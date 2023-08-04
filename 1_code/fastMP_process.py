@@ -10,9 +10,10 @@ except ModuleNotFoundError:
 
 if cluster_run is False:
     # LOCAL RUN
+    UCC_path = "/home/gabriel/Github/UCC/add_New_DB/"
     # insert at 1, 0 is the script path (or '' in REPL)
     # Path to modules
-    sys.path.insert(1, "/home/gabriel/Github/UCC/add_New_DB/modules/")
+    sys.path.insert(1, UCC_path + "modules/")
     import call_fastMP
     import main_process_GDR3_query as G3Q
     # Path to fastMP
@@ -21,14 +22,13 @@ if cluster_run is False:
     GAIADR3_path = '/media/gabriel/backup/gabriel/GaiaDR3/'
     frames_path = GAIADR3_path + 'datafiles_parquet_G20/'
     frames_ranges = GAIADR3_path + 'files_G20/frame_ranges.txt'
-    UCC_path = "/media/gabriel/backup/gabriel/UCC/"
     files = os.listdir(UCC_path)
     for i, _ in enumerate(files):
-        if _.endswith("_in.csv"):
+        if 'UCC_cat' in _ and _.endswith(".csv"):
             idx = i
     UCC_fname = files[idx]
     UCC_cat = UCC_path + UCC_fname
-    GCs_cat = "/home/gabriel/Github/UCC/add_New_DB/databases/globulars.csv"
+    GCs_cat = UCC_path + "databases/globulars.csv"
 else:
     # CLUSTER RUN
     import call_fastMP

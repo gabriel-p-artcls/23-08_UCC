@@ -10,17 +10,18 @@ hunt23_membs_path = "../0_data/hunt23_members.parquet"
 print("Reading HUNT23 members...")
 hunt23_membs = pd.read_parquet(hunt23_membs_path)
 
-# date = "0702"
-date = "0712"
-clpath = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/"
-final_dbs_path = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/UCC_cat_20230702_out.csv"
+# date = "0712"
+# clpath = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/"
+# final_dbs_path = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/UCC_cat_20230702_out.csv"
+clpath = "/home/gabriel/Github/UCC/"
+final_dbs_path = clpath + "add_New_DB/UCC_cat_20230702.csv"
 print("Reading fastMP output file...")
 fastMP_db = pd.read_csv(final_dbs_path)
 fnames = [_.split(';') for _ in fastMP_db['fnames']]
 
 
 def main():
-    hunt23_name = "UBC_1443"
+    hunt23_name = "Haffner_9"
     make_plot(hunt23_name)
     breakpoint()
 

@@ -101,7 +101,7 @@ def fastMP_vals(row, N_membs_min=25, plx_offset=0.029):
             idx = np.argsort(probs)[::-1][:Nmembs]
             msk = np.full(len(probs), False)
             msk[idx] = True
-        cl_d = cl_d[msk]            
+        cl_d = cl_d[msk]
     except:
         print(f"Could not find {Qfold}/{fname0}.parquet")
         return np.nan, np.nan
