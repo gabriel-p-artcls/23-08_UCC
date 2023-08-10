@@ -9,7 +9,7 @@ plt.style.use('science')
 years = (1771, 1900, 1995, 2015, 2022, 2023)
 values = (30, 650, 1200, 3000, 7000, 14000)
 # plt.bar(years, values, width=15)
-plt.plot(years, values, alpha=.75, marker='o', ms=10, color='maroon')
+plt.plot(years, values, alpha=1, marker='o', ms=5, color='maroon', zorder=5)
 plt.axvline(2016, ls=':', lw=2, c='k')
 
 plt.annotate(
