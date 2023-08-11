@@ -10,6 +10,8 @@ plt.style.use('science')
 Count duplicates in selected IDs
 """
 
+path_to_UCC_Db = "/home/gabriel/Github/UCC/updt_UCC/UCC_cat_230702.csv"
+
 db_years = {
     'KHARCHENKO12': 1200, 'LOKTIN17': 1700, 'CASTRO18': 1800,
     'BICA19': 1901, 'CASTRO19': 1907, 'SIM19': 1910, 'LIUPANG19': 1912,
@@ -17,8 +19,8 @@ db_years = {
     'CANTAT20': 2008, 'CASTRO20': 2003, 'FERREIRA20': 2008, 'HAO20': 2003,
     'DIAS21': 2106, 'CASADO21': 2106, 'FERREIRA21': 2103, 'HUNT21': 2102,
     'JAEHNIG21': 2112, 'SANTOS21': 2111, 'HE21': 2105,
-    'CASTRO22': 2205, 'TARRICQ22': 2203, 'LI22': 2203, 'HE22': 2209,
-    'HE22_1': 2205, 'HAO22': 2204,
+    'CASTRO22': 2205, 'TARRICQ22': 2203, 'LI22': 2203, 'HE22': 2205,
+    'HE22_1': 2209, 'HAO22': 2204,
     'HE23': 2301, 'HUNT23': 2305, 'QIN23': 2303, 'LI23': 2303,
     'CHI23_2': 2303, 'CHI23': 2306, 'CHI23_3': 2306
 }
@@ -33,7 +35,7 @@ ids_dup = {
     'lisciii': 0, 'hxhwl': 0, 'lisc': 0, 'hxwhb': 0, 'cwwl': 0  # 'xdocc': 0, 
 }
 
-df = pd.read_csv("/home/gabriel/Github/UCC/add_New_DB/UCC_cat_20230702_out.csv")
+df = pd.read_csv(path_to_UCC_Db)
 fnames = [_.split(';')[0] for _ in df['fnames']]
 
 # For each cluster in the DB
@@ -82,7 +84,7 @@ for i, row in df.iterrows():
     dup_year = min(dup_years)
 
     if dup_year < cl_year:
-        # This cluster is a duplicate of a previosuly presented object
+        # This cluster is a duplicate of a previously presented object
         ids_dup[cid_found] += 1
 
 cl_percentage = {}
@@ -98,7 +100,7 @@ cl_groups = {k: ids_sorted[k] for k in list(ids_sorted)[:5]}
 
 xticks = np.arange(len(cl_groups))
 
-heights = cl_groups.values()
+heights = np.array(list(cl_groups.values())) * 100
 
 # fig = plt.figure(figsize=(5, 5))
 ax = plt.subplot()
@@ -106,7 +108,7 @@ ax.bar(xticks, heights, alpha=.5)
 ax.set_ylabel(r"\% of probable duplicates")
 ax.set_xticks(xticks)
 xlabels = [_.upper() for _ in cl_groups.keys()]
-xlabels = [_.replace('FOF','FoF') for _ in xlabels]
+xlabels = [_.replace('FOF', 'FoF') for _ in xlabels]
 ax.set_xticklabels(xlabels, rotation=45)
 ax.tick_params(axis='both', which='minor', bottom=False)
 plt.savefig("duplicates.png", dpi=300)
