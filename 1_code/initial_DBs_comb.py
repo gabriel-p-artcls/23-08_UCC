@@ -5,7 +5,7 @@ import json
 import csv
 import pandas as pd
 import sys
-sys.path.insert(1, '/home/gabriel/Github/UCC/add_New_DB/modules/')
+sys.path.insert(1, '/home/gabriel/Github/UCC/updt_UCC/modules/')
 import DBs_combine
 
 """
@@ -13,7 +13,7 @@ This the initial script used to combine all the databases using the clusters'
 names.
 """
 
-dbs_folder = '/home/gabriel/Github/UCC/add_New_DB/'
+dbs_folder = '/home/gabriel/Github/UCC/updt_UCC/'
 DBs_json = "databases/all_dbs.json"
 
 

@@ -6,14 +6,12 @@ import pandas as pd
 import scienceplots
 plt.style.use('science')
 
-date = "0712"
-
 
 def main():
     """
     """
-    df = pd.read_csv("classif_data_" + date + ".csv")
-    names = df['name'].values
+    df = pd.read_csv("../../2_pipeline/classif_data.csv")
+    # names = df['name'].values
 
     # df['CST'] = np.clip(df['CST'], a_min=0, a_max=40) / 40
     # plt.scatter(df['CST'], df['C_dens'], alpha=.5)
@@ -53,12 +51,13 @@ def main():
     msk1 = df['r_50_pc'] < 20
 
     im = ax.scatter(
-        df['C_lkl'][msk1], df['C_dens'][msk1], c=-dist[msk1], alpha=.7, cmap='plasma',
-        s=size[msk1], lw=.1, ec='k', vmin=-vmax, vmax=-vmin)
+        df['C_lkl'][msk1], df['C_dens'][msk1], c=-dist[msk1], alpha=.7,
+        cmap='plasma', s=size[msk1], lw=.1, ec='k', vmin=-vmax, vmax=-vmin)
 
     ax.scatter(
-        df['C_lkl'][~msk1], df['C_dens'][~msk1], c=-dist[~msk1], alpha=.7, cmap='plasma',
-        s=size[~msk1], lw=.1, ec='k', marker='s', vmin=-vmax, vmax=-vmin)
+        df['C_lkl'][~msk1], df['C_dens'][~msk1], c=-dist[~msk1], alpha=.7,
+        cmap='plasma', s=size[~msk1], lw=.1, ec='k', marker='s', vmin=-vmax,
+        vmax=-vmin)
 
     plt.xlabel(r"$C_{phot}$", fontsize=14)
     plt.ylabel(r"$C_{dens}$", fontsize=14)
@@ -69,7 +68,7 @@ def main():
     cax = divider.append_axes('right', size='5%', pad='5%')
     cbar = fig.colorbar(im, cax=cax)
 
-    plt.savefig("classif.png", dpi=300)
+    plt.savefig("../../2_pipeline/classif.png", dpi=300)
 
 
 if __name__ == '__main__':

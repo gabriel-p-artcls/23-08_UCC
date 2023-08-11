@@ -129,9 +129,4 @@ dmypy.json
 .pyre/
 
 *sublime*
-/2_pipeline/pyUPMASK/*
-/2_pipeline/new_method/*
-/1_code/*.csv
-/0_data/CG_2017/*
-hunt23_members.csv.gz
 hunt23_members.parquet

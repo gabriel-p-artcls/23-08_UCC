@@ -3,14 +3,15 @@ import csv
 import numpy as np
 import pandas as pd
 
-date = "0712"
-clpath = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/"
-final_dbs_path = "/media/gabriel/backup/gabriel/UCC/out_" + date + "/UCC_cat_20230702_out.csv"
+datafiles_path = "/home/gabriel/Github/UCC/"
+final_dbs_path = "/home/gabriel/Github/UCC/updt_UCC/UCC_cat.csv"
 
-cantat20_DB_path = "/home/gabriel/Github/UCC/add_New_DB/databases/CANTAT20.csv"
-cantat20_membs_path = "/media/gabriel/rest/Dropbox_nosync/Papers/2023/GDR3_members/0_data/CG_2020_members.csv.gz"
-hunt23_DB_path = "/home/gabriel/Github/UCC/add_New_DB/databases/HUNT23.csv"
-hunt23_membs_path = "/media/gabriel/rest/Dropbox_nosync/Papers/2023/GDR3_members/0_data/hunt23_members.parquet"
+cantat20_DB_path = "/home/gabriel/Github/UCC/updt_UCC/databases/CANTAT20.csv"
+cantat20_membs_path = "/home/gabriel/Github/articles/2023/UCC/0_data/CG_2020_members.csv.gz"
+hunt23_DB_path = "/home/gabriel/Github/UCC/updt_UCC/databases/HUNT23.csv"
+hunt23_membs_path = "/home/gabriel/Github/articles/2023/UCC/0_data/hunt23_members.parquet"
+
+out_file = "../../2_pipeline/classif_data.csv"
 
 
 def main():
@@ -80,7 +81,7 @@ def main():
         print(line)
 
     df = pd.DataFrame(data)
-    df.to_csv("classif_data_" + date + ".csv", na_rep='nan', index=False,
+    df.to_csv(out_file, na_rep='nan', index=False,
               quoting=csv.QUOTE_NONNUMERIC)
 
 
@@ -92,7 +93,7 @@ def fastMP_vals(row, N_membs_min=25, plx_offset=0.029):
     Qfold = row['quad']
     try:
         cl_d = pd.read_parquet(
-            clpath + Qfold + '/datafiles/' + fname0 + '.parquet')
+            datafiles_path + Qfold + '/datafiles/' + fname0 + '.parquet')
         probs = cl_d['probs'].values
         msk = probs > 0.5
         Nmembs = N_membs_min
