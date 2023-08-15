@@ -41,6 +41,7 @@
   - HAO21
   - KOUNKEL20
 - Cross-matching results
+- Initial version of the catalogue
 
 <!-- /MarkdownTOC -->
 
@@ -515,3 +516,23 @@ N=13684 unique names identified
 We use the database of globular clusters from [Vasiliev & Baumgardt 2021](https://ui.adsabs.harvard.edu/abs/2021MNRAS.505.5978V/abstract);
 [url](https://people.smp.uq.edu.au/HolgerBaumgardt/globular/). Added the Gran 2, 3, 4, 5 GCs from Tables 1 and 2 of
 [Gran et al. 2022](https://ui.adsabs.harvard.edu/abs/2022MNRAS.509.4962G/abstract). The parallax is estimated as the inverted distance.
+
+
+
+# Initial version of the catalogue
+
+The initial version is generated using the `initial_DBs_comb` script. This
+initial version is then processed with the `fastMP_process`
+script in the `updt_UCC` repo to generate the datafiles for each catalogued
+cluster, through the use of the `fastMP` package. The `fastMP_process` script
+calls the `call_fastMP` module (both in the same `updt_UCC` repo) that handles
+the datafile generation for each cluster and the updating of the
+`UCC_cat_XXXYYZZ.csv` catalogue file with the obtained parameters.
+
+Finally, the `add_duplicates` script (in this repo) is applied on the
+`UCC_cat_XXXYYZZ.csv` catalogue file to add the probable duplicates for each
+cluster, using the coordinates estimated through `fastMP`.
+
+The datafiles generated in this initial run need to be processed with the
+`make_entries` script (`updt_UCC` repo) to generate the files that will
+populate the site `ucc.ar`.
